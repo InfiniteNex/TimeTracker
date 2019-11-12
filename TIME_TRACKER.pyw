@@ -15,6 +15,15 @@ import json
 current_year = datetime.datetime.now()
 username = getpass.getuser()
 
+classname = str()
+dictionary = {"Idle": 0}
+idle_time_max = 300.0 # 5 minutes max idle time
+idle_state = "below 0" # 0 - below idle_time_max, 1 - above idle_time_max once, 2 - increment by seconds
+export_iterator = 0
+export_iterator_max = 20 # save automatically every 20 seconds/cycles
+filename = datetime.datetime.now()
+autosave = ""
+
 class Timer:
     def __init__(self, parent):
 
@@ -55,7 +64,9 @@ class Timer:
         if self.loop_state == 0:
             self.seconds += 1
             # activate track class/method
-            Active_tracker.main_loop_counter(self)            
+            Active_tracker.main_loop_counter(self)        
+
+
 
         # display the new time
         self.label.configure(text="%i s" % self.seconds)
@@ -78,13 +89,28 @@ class Timer:
 
 
 def settings_window():
+    global export_iterator_max
+    global autosave
     top = tk.Toplevel()
     top.resizable(0,0)
     top.geometry("300x300+850+250") #WidthxHeight and x+y
     tk.Label(top, text="Currently tracking user: ").place(relx=0.1)
     tk.Label(top, text=username).place(relx=0.7)
     tk.Checkbutton(top, text="Show activity icon in tray bar.").place(relx=0.1, rely=0.15)  # REMEMBER TO INCLUDE THE VARIABLE WHEN ADDING FUNCTIONALITY
+    tk.Label(top, text="Autosave (sec): ").place(relx=0.1, rely=0.25)
+
+    autosave = tk.StringVar()
+    autos = tk.Entry(top, width=2, textvariable=autosave).place(relx=0.5, rely=0.25)
+    autosave.set(export_iterator_max)
+    tk.Button(top, text="Set", command=autosave_set).place(relx=0.75, rely=0.25)
+
     tk.Button(top, text="About", command=about_app).place(relx=0.4, rely=0.9)
+
+
+def autosave_set():
+    global export_iterator_max
+    export_iterator_max = int(autosave.get())
+
 
 def about_app():
     about_top = tk.Toplevel()
@@ -92,10 +118,66 @@ def about_app():
     about_top.geometry("200x200+900+300") #WidthxHeight and x+y
     tk.Label(about_top, text="Insert about info in here in the future.").pack()
 
+
 class Active_tracker:
     def main_loop_counter(self):
-            print("tracking")
-    
+        global classname
+        global export_iterator
+
+        self.w=win32gui                                # detect window every second
+        self.w.GetWindowText (self.w.GetForegroundWindow()) # get active window code
+        self.pid = win32process.GetWindowThreadProcessId(self.w.GetForegroundWindow()) # get process name.exe
+        self.classname = self.w.GetClassName (self.w.GetForegroundWindow()) # get process class name
+        print(username, self.classname, psutil.Process(self.pid[-1]).name())
+            
+
+        # add window class name to dictionary if missing and iterate its value by 1 second
+        if not self.classname in dictionary:
+            dictionary[self.classname] = 1
+        else:
+            dictionary[self.classname] += 1
+
+        print(dictionary)
+        Active_tracker.getIdleTime(self)
+        export_iterator += 1 # auto-save timer/counter
+        if export_iterator == export_iterator_max:
+            Active_tracker.export()
+            export_iterator = 0
+
+
+
+    def getIdleTime(self):
+        global idle_state
+        global idle_time_max
+        self.idle_time = (win32api.GetTickCount() - win32api.GetLastInputInfo()) / 1000.0
+        print(self.idle_time)
+        if self.idle_time >= idle_time_max:
+            print("5 minutes passed")
+            Active_tracker.add_idle_max(self)
+        else:
+            idle_state = "below 0"
+
+    def add_idle_max(self):
+        global idle_state
+        global idle_time_max
+        if idle_state == "below 0":
+            idle_state = "add max time"
+            dictionary["Idle"] += idle_time_max
+            dictionary[self.classname] -= 1
+            idle_state = "add seconds"
+        elif idle_state == "add seconds":
+            dictionary["Idle"] += 1
+            dictionary[self.classname] -= 1
+
+
+    def export():
+        with open("export "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
+            json.dump(dictionary, outputfile)
+            print("Exported data to file!")
+
+
+
+# INITIALIZE =========================================================================
 
 if __name__ == "__main__":
     root = tk.Tk()
