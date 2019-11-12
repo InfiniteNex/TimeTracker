@@ -6,6 +6,12 @@ import datetime
 import getpass
 import time
 
+import win32api
+import win32gui
+import psutil
+import win32process
+import json
+
 current_year = datetime.datetime.now()
 username = getpass.getuser()
 
@@ -48,6 +54,8 @@ class Timer:
         # increment the time
         if self.loop_state == 0:
             self.seconds += 1
+            # activate track class/method
+            Active_tracker.main_loop_counter(self)            
 
         # display the new time
         self.label.configure(text="%i s" % self.seconds)
@@ -84,6 +92,10 @@ def about_app():
     about_top.geometry("200x200+900+300") #WidthxHeight and x+y
     tk.Label(about_top, text="Insert about info in here in the future.").pack()
 
+class Active_tracker:
+    def main_loop_counter(self):
+            print("tracking")
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
