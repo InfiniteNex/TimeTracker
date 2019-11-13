@@ -20,9 +20,20 @@ dictionary = {"Idle": 0}
 idle_time_max = 300.0 # 5 minutes max idle time
 idle_state = "below 0" # 0 - below idle_time_max, 1 - above idle_time_max once, 2 - increment by seconds
 export_iterator = 0
-export_iterator_max = 20 # save automatically every 20 seconds/cycles
+export_iterator_max = 20 # save automatically every 20(Default) seconds/cycles
 filename = datetime.datetime.now()
 autosave = ""
+
+def load_settings():
+    global export_iterator_max
+    file = open("config.txt", "r")
+    contents = file.readlines()
+    file.close
+
+    for line in contents:
+        if "autosave" in line:
+            x = line.split(sep="=")
+            export_iterator_max = int(x[1])
 
 class Timer:
     def __init__(self, parent):
@@ -184,5 +195,6 @@ if __name__ == "__main__":
     root.resizable(0,0)
     root.title("Time Tracker")
     root.geometry("420x800+800+150") #WidthxHeight and x+y of main window
+    load_settings()
     timer = Timer(root)
     root.mainloop()
