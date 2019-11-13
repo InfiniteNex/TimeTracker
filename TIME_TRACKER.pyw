@@ -34,6 +34,13 @@ def load_settings():
         if "autosave" in line:
             x = line.split(sep="=")
             export_iterator_max = int(x[1])
+            
+def save_settings():
+    global export_iterator_max
+    file = open("config.txt", "w")
+    file.write("autosave=" + str(export_iterator_max))
+    file.close
+    
 
 class Timer:
     def __init__(self, parent):
@@ -121,6 +128,7 @@ def settings_window():
 def autosave_set():
     global export_iterator_max
     export_iterator_max = int(autosave.get())
+    save_settings()
 
 
 def about_app():
