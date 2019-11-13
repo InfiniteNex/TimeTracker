@@ -34,32 +34,25 @@ def load_settings():
         if "autosave" in line:
             x = line.split(sep="=")
             export_iterator_max = int(x[1])
-            
+
 def save_settings():
     global export_iterator_max
     file = open("config.txt", "w")
     file.write("autosave=" + str(export_iterator_max))
     file.close
-    
+
+
 
 class Timer:
     def __init__(self, parent):
-
-        self.active_window = "Chrome.exe"
-        self.active_window_time = "0:45:30"
-
         # On/Off button for tracking + label & settings button
         self.button = tk.Button(root, text="On/Off", command=self.state).place(relx=0.05, rely=0.025, relwidth=0.2)
         self.tracking_state_label = tk.Label(root, text="Tracking is: ").place(relx=0.3, rely=0.03)
-        self.tracking_state = tk.Label(root, text="placeholder", bg="red").place(relx=0.5, rely=0.03)
         self.settings = tk.Button(root, text="Settings", command=settings_window).place(relx=0.8, rely=0.025)
-        #self.settings = tk.Button(root, text="Settings").place(relx=0.8, rely=0.025)
         
         # active window display
         self.active_window_label = tk.Label(root, text="Active window:").place(relx=0.05, rely=0.1)
-        self.active_window = tk.Label(root, text=self.active_window, bg="red").place(relx=0.28, rely=0.1)
-        self.active_window_time = tk.Label(root, text=self.active_window_time, bg="red").place(relx=0.8, rely=0.1)
-
+        
         # export to excel button
         self.export_button = tk.Button(root, text="Export to Excel").place(relx=0.75, rely=0.15)
 
@@ -93,15 +86,19 @@ class Timer:
 
 
 
-    loop_state = 0 # 1 on/off 0
+    loop_state = 1 # 0 on/off 1
     def state(self):
         # variable storing the on/off state
         global loop_state
         # switcher
         if self.loop_state == 0:
             self.loop_state = 1
+            self.tracking_state = tk.Label(root, text="Off").place(relx=0.5, rely=0.03)
+
         elif self.loop_state == 1:
             self.loop_state = 0
+            self.tracking_state = tk.Label(root, text="Active").place(relx=0.5, rely=0.03)
+
         print(self.loop_state)
 
 
@@ -111,6 +108,7 @@ def settings_window():
     global autosave
     top = tk.Toplevel()
     top.resizable(0,0)
+    top.title("Settings")
     top.geometry("300x300+850+250") #WidthxHeight and x+y
     tk.Label(top, text="Currently tracking user: ").place(relx=0.1)
     tk.Label(top, text=username).place(relx=0.7)
@@ -130,7 +128,6 @@ def autosave_set():
     export_iterator_max = int(autosave.get())
     save_settings()
 
-
 def about_app():
     about_top = tk.Toplevel()
     about_top.resizable(0,0)
@@ -148,13 +145,18 @@ class Active_tracker:
         self.pid = win32process.GetWindowThreadProcessId(self.w.GetForegroundWindow()) # get process name.exe
         self.classname = self.w.GetClassName (self.w.GetForegroundWindow()) # get process class name
         print(username, self.classname, psutil.Process(self.pid[-1]).name())
-            
 
         # add window class name to dictionary if missing and iterate its value by 1 second
         if not self.classname in dictionary:
             dictionary[self.classname] = 1
         else:
             dictionary[self.classname] += 1
+
+        self.active_window_time = dictionary.get(self.classname)
+        
+        # add and refresh label for active window
+        self.active_window = tk.Label(root, text=self.classname).place(relx=0.28, rely=0.1)
+        self.active_window_time = tk.Label(root, text=self.active_window_time).place(relx=0.8, rely=0.1)
 
         print(dictionary)
         Active_tracker.getIdleTime(self)
