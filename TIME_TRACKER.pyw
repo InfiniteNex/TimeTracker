@@ -61,6 +61,15 @@ class Timer:
         self.choose_date_label = tk.Label(self.frame, text="Choose Date").place(x=18, y=125)
         self.cal = DateEntry(self.frame, width=12, background='darkblue', foreground='white', borderwidth=2, year=current_year.year).place(x=110, y=125)
 
+
+        # stats text display
+        #self.text_frame_main = tk.Frame(root, bg="red").place(relx=0.025,rely=0.28,relheight=0.55,relwidth=0.95)
+        self.header = tk.Label(root, text="Window").place(relx=0.025, rely=0.25, height=30, relwidth=0.5)
+        self.header = tk.Label(root, text="Time").place(relx=0.525, rely=0.25, height=30, relwidth=0.45)
+        
+        
+        
+
         # variable storing time
         self.seconds = 0
         # label displaying time
@@ -116,7 +125,7 @@ def settings_window():
     tk.Label(top, text="Autosave (sec): ").place(relx=0.1, rely=0.25)
 
     autosave = tk.StringVar()
-    autos = tk.Entry(top, width=2, textvariable=autosave).place(relx=0.5, rely=0.25)
+    autos = tk.Entry(top, width=3, textvariable=autosave).place(relx=0.5, rely=0.25)
     autosave.set(export_iterator_max)
     tk.Button(top, text="Set", command=autosave_set).place(relx=0.75, rely=0.25)
 
@@ -165,7 +174,14 @@ class Active_tracker:
             Active_tracker.export()
             export_iterator = 0
 
+        text1 = tk.Text(root)#.place(relx=0.025,rely=0.28,relheight=0.55,relwidth=0.95)
+        for x in dictionary:
+            text1.insert(tk.END, x)
+            text1.insert(tk.END, "\t")
+            text1.insert(tk.END, dictionary[x])
+            text1.insert(tk.END, "\n")
 
+        text1.place(relx=0.025,rely=0.28,relheight=0.55,relwidth=0.95)
 
     def getIdleTime(self):
         global idle_state
