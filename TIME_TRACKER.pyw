@@ -49,7 +49,7 @@ class Timer:
         self.button = tk.Button(root, text="On/Off", command=self.state).place(relx=0.05, rely=0.025, relwidth=0.2)
         self.tracking_state_label = tk.Label(root, text="Tracking is: ").place(relx=0.3, rely=0.03)
         self.settings = tk.Button(root, text="Settings", command=settings_window).place(relx=0.8, rely=0.025)
-        
+        self.tracking_state = None
         # active window display
         self.active_window_label = tk.Label(root, text="Active window:").place(relx=0.05, rely=0.1)
         
@@ -99,10 +99,8 @@ class Timer:
     def state(self):
         # variable storing the on/off state
         global loop_state
-        try:
-            self.tracking_state.after(1, self.tracking_state.destroy)
-        except:
-            pass
+        if self.tracking_state is not None:
+            self.tracking_state.destroy()
         # switcher
         if self.loop_state == 0:
             self.loop_state = 1
