@@ -99,16 +99,22 @@ class Timer:
     def state(self):
         # variable storing the on/off state
         global loop_state
+        try:
+            self.tracking_state.after(1, self.tracking_state.destroy)
+        except:
+            pass
         # switcher
         if self.loop_state == 0:
             self.loop_state = 1
-            self.tracking_state = tk.Label(root, text="Off").place(relx=0.5, rely=0.03)
+            self.tracking_state = tk.Label(root, text="Off") 
 
         elif self.loop_state == 1:
             self.loop_state = 0
-            self.tracking_state = tk.Label(root, text="Active").place(relx=0.5, rely=0.03)
+            self.tracking_state = tk.Label(root, text="Active")
 
-        print(self.loop_state)
+        self.tracking_state.place(relx=0.5, rely=0.03)
+        
+        #print(self.loop_state)
 
 
 
@@ -212,6 +218,12 @@ class Active_tracker:
             json.dump(dictionary, outputfile)
             print("Exported data to file!")
 
+
+    
+
+    
+    
+        
 
 
 # INITIALIZE =========================================================================
