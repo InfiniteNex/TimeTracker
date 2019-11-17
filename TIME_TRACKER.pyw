@@ -153,18 +153,21 @@ class Active_tracker:
         global classname
         global export_iterator
 
-        self.w=win32gui                                # detect window every second
-        self.w.GetWindowText (self.w.GetForegroundWindow()) # get active window code
-        self.pid = win32process.GetWindowThreadProcessId(self.w.GetForegroundWindow()) # get process name.exe
-        self.classname = self.w.GetClassName (self.w.GetForegroundWindow()) # get process class name
-        print(username, self.classname, psutil.Process(self.pid[-1]).name())
+        try:
+            self.w=win32gui                                # detect window every second
+            self.w.GetWindowText (self.w.GetForegroundWindow()) # get active window code
+            self.pid = win32process.GetWindowThreadProcessId(self.w.GetForegroundWindow()) # get process name.exe
+            self.classname = self.w.GetClassName (self.w.GetForegroundWindow()) # get process class name
+            print(username, self.classname, psutil.Process(self.pid[-1]).name())
+
 
         # add window class name to dictionary if missing and iterate its value by 1 second
-        if not self.classname in dictionary:
-            dictionary[self.classname] = 1
-        else:
-            dictionary[self.classname] += 1
-
+            if not self.classname in dictionary:
+                dictionary[self.classname] = 1
+            else:
+                dictionary[self.classname] += 1
+        except:
+            pass
         self.active_window_time = dictionary.get(self.classname)
         
         # add and refresh label for active window
@@ -178,6 +181,12 @@ class Active_tracker:
             Active_tracker.export()
             export_iterator = 0
 
+
+        try:
+            text1.destroy()
+        except:
+            pass
+        
         text1 = tk.Text(root)#.place(relx=0.025,rely=0.28,relheight=0.55,relwidth=0.95)
         for x in dictionary:
             text1.insert(tk.END, x)
