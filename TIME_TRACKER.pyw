@@ -239,6 +239,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.resizable(0,0)
     root.title("Time Tracker")
+    root.wm_attributes("-topmost", 1) # keep window always on top, but not always focused
     root.geometry("420x800+800+150") #WidthxHeight and x+y of main window
     load_settings()
     timer = Timer(root)
