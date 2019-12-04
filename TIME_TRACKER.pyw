@@ -161,8 +161,8 @@ class Active_tracker:
             print(username, self.classname, psutil.Process(self.pid[-1]).name())
 
 
-        # add window class name to dictionary if missing and iterate its value by 1 second
-            if not self.classname in dictionary:
+        # add window class name to dictionary if missing and iterate its value by 1 second. If this program is selected then dont add it
+            if not self.classname in dictionary and self.classname != "TkTopLevel":
                 dictionary[self.classname] = 1
             else:
                 dictionary[self.classname] += 1
