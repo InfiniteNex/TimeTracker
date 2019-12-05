@@ -16,6 +16,12 @@ gindex = 1
 entry_text = ""
 
 #=========================================================================
+def callback():
+    if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
+        root.destroy()
+
+
+    
 
 class UI:
     def __init__(self, parent):
@@ -23,8 +29,8 @@ class UI:
         global entry_text
         global entry
 
-        tk.Button(root, text="Settings").place(relx=0.75, rely=0.025, relwidth=0.2)
-        tk.Button(root, text="+", command=self.addnew).place(relx=0.02, rely=0.1, relwidth=0.1)
+        tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.75, rely=0.025, relwidth=0.2)
+        tk.Button(root, text="Add", command=self.addnew).place(relx=0.02, rely=0.1, relwidth=0.1)
 
         entry = tk.StringVar()
         self.entry_space = tk.Entry(root, textvariable=entry)
@@ -74,7 +80,36 @@ class UI:
         widget.grid_forget()
 
         gindex -= 1
+
+
+
+    def settings_window(self):
+        self.top = tk.Toplevel()
+        self.top.resizable(0,0)
+        self.top.title("Settings")
+        self.top.protocol("WM_DELETE_WINDOW", self.settings_callback)
+        self.top.wm_attributes("-topmost", 1)
+        self.top.geometry("300x200+850+250") #WidthxHeight and x+y
+        root.iconify()
+        tk.Label(self.top, text="Nothing in here yet.").pack()
+
+    def settings_callback(self):
+        root.deiconify()
+        self.top.destroy()
+
+
+
+
         
 #=========================================================================
 
 if __name__ == "__main__":
+    root = tk.Tk()
+    root.resizable(0,0)
+    title = root.title("Time Tracker")
+    root.wm_attributes("-topmost", 1)
+    root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
+    root.protocol("WM_DELETE_WINDOW", callback)
+    #load_settings()
+    UI(root)
+    root.mainloop()
