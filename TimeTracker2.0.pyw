@@ -14,6 +14,8 @@ import sys
 
 gindex = 1
 entry_text = ""
+currently_selected_task = None
+currently_selected_task_time_label = None
 
 #=========================================================================
 def callback():
@@ -51,10 +53,12 @@ class UI:
         self.frame = tk.LabelFrame(root)
         self.frame.place(relx=0.018, rely=0.2, relwidth=0.9, relheight=0.75)
 
-        task = tk.Button(self.frame, text="Resting", width=40)
-        task.grid(row=0, column=0)
-        time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, bg="gray")
-        time_elapsed.grid(row=0, column=1)
+        self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda index=0: self.taskOnClick(index))
+        self.task.grid(row=0, column=0)
+        self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
+        self.time_elapsed.grid(row=0, column=1)
+        self.blank_label = tk.Label(self.frame, text="")
+        self.blank_label.grid(row=0, column=2)
         
         # variable storing time
         self.seconds = 0
@@ -84,15 +88,15 @@ class UI:
         self.entry_space.delete(0, "end")
 
         if gindex <= 10 and entry_text != "":
-            task = tk.Button(self.frame, text=entry_text, width=40)
-            task.grid(row=gindex, column=0)
-            time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, bg="gray")
+            self.task = tk.Button(self.frame, text=entry_text, width=40, command=lambda index=gindex: self.taskOnClick(index))
+            self.task.grid(row=gindex, column=0)
+            time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
             time_elapsed.grid(row=gindex, column=1)
-            self.delete_b = tk.Button(self.frame, text="delete", command=lambda index=gindex: self.printOnClick(index), width=10)
+            self.delete_b = tk.Button(self.frame, text="delete", command=lambda index=gindex: self.delOnClick(index), width=10)
             self.delete_b.grid(row=gindex, column=2)
             gindex += 1
 
-    def printOnClick(self, index):
+    def delOnClick(self, index):
         global gindex
         widget = self.frame.grid_slaves(row=index)[2]
         #print(widget, widget['text'])
@@ -104,6 +108,18 @@ class UI:
         #print(widget, widget['text'])
         widget.grid_forget()
         gindex -= 1
+
+
+    def taskOnClick(self, index):
+        global currently_selected_task, currently_selected_task_time_label
+        # Get the name text of the currently selected button
+        wid = self.frame.grid_slaves(row=index)[2]
+        wid_time = self.frame.grid_slaves(row=index)[1]
+        currently_selected_task = wid['text']
+        #print(wid['text'])
+        currently_selected_task_time_label = wid_time['text']
+        print(currently_selected_task, currently_selected_task_time_label)
+
 
     def settings_window(self):
         self.top = tk.Toplevel()
