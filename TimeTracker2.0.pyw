@@ -20,8 +20,15 @@ def callback():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
         root.destroy()
 
-
-    
+#Convert seconds into hours, minutes and seconds to be displayed
+def convert(seconds): 
+    seconds = seconds % (24 * 3600) 
+    hour = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+      
+    return "%d:%02d:%02d" % (hour, minutes, seconds) 
 
 class UI:
     def __init__(self, parent):
@@ -36,9 +43,10 @@ class UI:
         self.entry_space = tk.Entry(root, textvariable=entry)
         self.entry_space.place(relx=0.13, rely=0.1, relheight=0.07, relwidth=0.6)
         entry.set(entry_text)
-
-        tk.Button(root, text="On").place(relx=0.75, rely=0.1, relwidth=0.1)
-        tk.Button(root, text="Off").place(relx=0.85, rely=0.1, relwidth=0.1)
+        
+        self.onoffgridframe = tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.75, rely=0.1, relwidth=0.2, relheight=0.064)
+        self.on_tb_destroyed = tk.Button(root, text="On", command=self.on_off)
+        self.on_tb_destroyed.place(relx=0.75, rely=0.1, relwidth=0.1)
 
         self.frame = tk.LabelFrame(root)
         self.frame.place(relx=0.018, rely=0.2, relwidth=0.9, relheight=0.75)
@@ -48,8 +56,27 @@ class UI:
         time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, bg="gray")
         time_elapsed.grid(row=0, column=1)
         
+        # variable storing time
+        self.seconds = 0
+        # label displaying time
+        self.label = tk.Label(parent, text="0 s", font="Arial 20", width=10)
+        self.label.pack()
+        # start the timer
+        self.label.after(1000, self.refresh_label)
 
-       
+    loop_state = 0 # 0 off/on 1
+    def refresh_label(self):
+        #refresh the content of the label every second
+        # increment the time
+        if self.loop_state == 1:
+            self.seconds += 1
+            #convert the time into a 00:00:00 format
+            self.conv_seconds = convert(self.seconds)
+            # display the new time
+            self.label.configure(text=self.conv_seconds)
+            # request tkinter to call self.refresh after 1s (the delay is given in ms)
+        self.label.after(1000, self.refresh_label)
+
     def addnew(self):
         global gindex
         global entry_text
@@ -65,8 +92,6 @@ class UI:
             self.delete_b.grid(row=gindex, column=2)
             gindex += 1
 
-
-
     def printOnClick(self, index):
         global gindex
         widget = self.frame.grid_slaves(row=index)[2]
@@ -78,10 +103,7 @@ class UI:
         widget = self.frame.grid_slaves(row=index)[0]
         #print(widget, widget['text'])
         widget.grid_forget()
-
         gindex -= 1
-
-
 
     def settings_window(self):
         self.top = tk.Toplevel()
@@ -96,6 +118,31 @@ class UI:
     def settings_callback(self):
         root.deiconify()
         self.top.destroy()
+
+    def on_off(self):
+        try:
+            self.on_tb_destroyed.destroy()
+        except:
+            pass
+
+        global loop_state
+        if self.loop_state == 0: #start timer
+            self.loop_state += 1
+            self.off = tk.Button(root, text="Off", command=self.on_off)
+            self.off.place(relx=0.85, rely=0.1, relwidth=0.1)
+            try:
+                self.on.destroy()
+            except:
+                pass
+        elif self.loop_state == 1: #stop timer
+            self.loop_state -= 1
+            self.on = tk.Button(root, text="On", command=self.on_off)
+            self.on.place(relx=0.75, rely=0.1, relwidth=0.1)
+            self.off.destroy()
+
+
+
+
 
 
 
