@@ -50,8 +50,8 @@ class UI:
         self.on_tb_destroyed = tk.Button(root, text="On", command=self.on_off)
         self.on_tb_destroyed.place(relx=0.75, rely=0.1, relwidth=0.1)
 
-        self.frame = tk.LabelFrame(root)
-        self.frame.place(relx=0.018, rely=0.2, relwidth=0.9, relheight=0.75)
+        self.frame = tk.LabelFrame(root, text="Tasks")
+        self.frame.place(relx=0.018, rely=0.2, relwidth=0.9, relheight=0.77)
 
         self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda index=0: self.taskOnClick(index))
         self.task.grid(row=0, column=0)
