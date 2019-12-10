@@ -12,7 +12,11 @@ import win32process
 import json
 import sys
 
+path = "C:\\Users\\Simon\\Desktop\\time_tracker\\dumps\\"
+filename = datetime.datetime.now()
 entry_text = ""
+autosave_inc = 0
+autosave_max = 10 # save automatically every 20(Default) seconds/cycles
 
 #name and row of the currently selected active task
 active_task = {
@@ -98,6 +102,7 @@ class UI:
 
     loop_state = 0 # 0 off/on 1
     def refresh_label(self):
+        global autosave_max, autosave_inc
         #refresh the content of the label every second
         # increment the time
         if self.loop_state == 1:
@@ -108,7 +113,14 @@ class UI:
             self.conv_seconds = convert(self.seconds)
             # display the new time
             self.label.configure(text=self.conv_seconds)
-            # request tkinter to call self.refresh after 1s (the delay is given in ms)
+            # increment and activate autosave
+            autosave_inc += 1
+            if autosave_inc == autosave_max:
+                save_data()
+                autosave_inc = 0
+            else:
+                pass
+        # request tkinter to call self.refresh after 1s (the delay is given in ms)
         self.label.after(1000, self.refresh_label)
 
     # add new row of buttons on this specific row
@@ -212,6 +224,10 @@ class UI:
         self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
         self.time_label_to_refresh.configure(text=self.conv_time, bg="green")
         
+
+def save_data():
+    with open(path + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
+        json.dump(task_accumulated_time, outputfile)
 
 #=========================================================================
 
