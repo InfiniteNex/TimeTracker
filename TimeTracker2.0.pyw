@@ -214,3 +214,12 @@ class UI:
 #=========================================================================
 
 if __name__ == "__main__":
+    root = tk.Tk()
+    root.resizable(0,0)
+    title = root.title("Time Tracker")
+    root.wm_attributes("-topmost", 1)
+    root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
+    root.protocol("WM_DELETE_WINDOW", callback)
+    #load_settings()
+    UI(root)
+    root.mainloop()
