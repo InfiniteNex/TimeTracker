@@ -12,10 +12,30 @@ import win32process
 import json
 import sys
 
-gindex = 1
 entry_text = ""
-currently_selected_task = None
-currently_selected_task_time_label = None
+
+#name and row of the currently selected active task
+active_task = {
+    "name" : "Resting",
+    "row" : 0,
+}
+
+
+grid_cells = {
+    "1" : "empty",
+    "2" : "empty",
+    "3" : "empty",
+    "4" : "empty",
+    "5" : "empty",
+    "6" : "empty",
+    "7" : "empty",
+    "8" : "empty",
+    "9" : "empty",
+    "10" : "empty"
+}
+
+# list with all tasks and their respective accumulated times
+task_accumulated_time = {}
 
 #=========================================================================
 def callback():
@@ -39,26 +59,34 @@ class UI:
         global entry
 
         tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.75, rely=0.025, relwidth=0.2)
-        tk.Button(root, text="Add", command=self.addnew).place(relx=0.02, rely=0.1, relwidth=0.1)
+        #tk.Button(root, text="Add", command=self.addnew).place(relx=0.02, rely=0.1, relwidth=0.1)
 
         entry = tk.StringVar()
         self.entry_space = tk.Entry(root, textvariable=entry)
         self.entry_space.place(relx=0.13, rely=0.1, relheight=0.07, relwidth=0.6)
         entry.set(entry_text)
         
-        self.onoffgridframe = tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.75, rely=0.1, relwidth=0.2, relheight=0.064)
+        tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.75, rely=0.1, relwidth=0.2, relheight=0.064)
         self.on_tb_destroyed = tk.Button(root, text="On", command=self.on_off)
         self.on_tb_destroyed.place(relx=0.75, rely=0.1, relwidth=0.1)
 
         self.frame = tk.LabelFrame(root, text="Tasks")
         self.frame.place(relx=0.018, rely=0.2, relwidth=0.9, relheight=0.77)
 
-        self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda index=0: self.taskOnClick(index))
-        self.task.grid(row=0, column=0)
-        self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
-        self.time_elapsed.grid(row=0, column=1)
-        self.blank_label = tk.Label(self.frame, text="")
-        self.blank_label.grid(row=0, column=2)
+        b0 = tk.Button(self.frame, text="  ", relief=tk.RIDGE).grid(row=0 , column=0)
+        self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
+        self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=0, column=2)
+
+        self.b1 = tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
+        self.b2 = tk.Button(self.frame, text="+", command=lambda row=2: self.addnew(row)).grid(row=2 , column=0)
+        self.b3 = tk.Button(self.frame, text="+", command=lambda row=3: self.addnew(row)).grid(row=3 , column=0)
+        self.b4 = tk.Button(self.frame, text="+", command=lambda row=4: self.addnew(row)).grid(row=4 , column=0)
+        self.b5 = tk.Button(self.frame, text="+", command=lambda row=5: self.addnew(row)).grid(row=5 , column=0)
+        self.b6 = tk.Button(self.frame, text="+", command=lambda row=6: self.addnew(row)).grid(row=6 , column=0)
+        self.b7 = tk.Button(self.frame, text="+", command=lambda row=7: self.addnew(row)).grid(row=7 , column=0)
+        self.b8 = tk.Button(self.frame, text="+", command=lambda row=8: self.addnew(row)).grid(row=8 , column=0)
+        self.b9 = tk.Button(self.frame, text="+", command=lambda row=9: self.addnew(row)).grid(row=9 , column=0)
+        self.b10 = tk.Button(self.frame, text="+", command=lambda row=10: self.addnew(row)).grid(row=10 , column=0)
         
         # variable storing time
         self.seconds = 0
@@ -74,6 +102,8 @@ class UI:
         # increment the time
         if self.loop_state == 1:
             self.seconds += 1
+            # increment time label, for specific row
+            self.increment_time_label()
             #convert the time into a 00:00:00 format
             self.conv_seconds = convert(self.seconds)
             # display the new time
@@ -81,44 +111,51 @@ class UI:
             # request tkinter to call self.refresh after 1s (the delay is given in ms)
         self.label.after(1000, self.refresh_label)
 
-    def addnew(self):
-        global gindex
+    # add new row of buttons on this specific row
+    def addnew(self, row):
         global entry_text
         entry_text = entry.get()
         self.entry_space.delete(0, "end")
+        cell_availability = grid_cells[str(row)]
+        
+        if cell_availability == "empty" and entry_text != "":
+            self.task = tk.Button(self.frame, text=entry_text, width=40, command=lambda row=row: self.task_activate(row)).grid(row=row, column=1)
+            self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=row, column=2)
+            self.delete_b = tk.Button(self.frame, text="-", command=lambda row=row: self.delete_row(row)).grid(row=row, column=3)
+            grid_cells[str(row)] = "active"
 
-        if gindex <= 10 and entry_text != "":
-            self.task = tk.Button(self.frame, text=entry_text, width=40, command=lambda index=gindex: self.taskOnClick(index))
-            self.task.grid(row=gindex, column=0)
-            time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
-            time_elapsed.grid(row=gindex, column=1)
-            self.delete_b = tk.Button(self.frame, text="delete", command=lambda index=gindex: self.delOnClick(index), width=10)
-            self.delete_b.grid(row=gindex, column=2)
-            gindex += 1
+    # delete this specific row of buttons, indexes: 2-name, 1-time, 0-delete button
+    def delete_row(self, row):
+        # set default Resting task when deleting this one if this one is the currently selected:
+        self.check_task_if_same = self.frame.grid_slaves(row=row)[2]
+        if active_task["name"] == self.check_task_if_same["text"]:
+            active_task["name"] = "Resting"
+            active_task["row"] = 0
 
-    def delOnClick(self, index):
-        global gindex
-        widget = self.frame.grid_slaves(row=index)[2]
-        #print(widget, widget['text'])
-        widget.grid_forget()
-        widget = self.frame.grid_slaves(row=index)[1]
-        #print(widget, widget['text'])
-        widget.grid_forget()
-        widget = self.frame.grid_slaves(row=index)[0]
-        #print(widget, widget['text'])
-        widget.grid_forget()
-        gindex -= 1
+        widget_to_delete = self.frame.grid_slaves(row=row)[2]
+        #print(widget_to_delete, widget_to_delete['text'])
+        widget_to_delete.destroy()
+        widget_to_delete = self.frame.grid_slaves(row=row)[1]
+        widget_to_delete.destroy()
+        widget_to_delete = self.frame.grid_slaves(row=row)[0]
+        widget_to_delete.destroy()
+        grid_cells[str(row)] = "empty"
 
 
-    def taskOnClick(self, index):
-        global currently_selected_task, currently_selected_task_time_label
-        # Get the name text of the currently selected button
-        wid = self.frame.grid_slaves(row=index)[2]
-        wid_time = self.frame.grid_slaves(row=index)[1]
-        currently_selected_task = wid['text']
-        #print(wid['text'])
-        currently_selected_task_time_label = wid_time['text']
-        print(currently_selected_task, currently_selected_task_time_label)
+
+    # get the label index of the currently activated task's row
+    def task_activate(self, row):
+        if row == 0:
+            self.active_timer_row = self.frame.grid_slaves(row=row)[0]
+            ttt = self.frame.grid_slaves(row=row)[1]
+        else:
+            self.active_timer_row = self.frame.grid_slaves(row=row)[1]
+            ttt = self.frame.grid_slaves(row=row)[2]
+
+        
+        # add task name and row to active task handler
+        active_task["name"] = ttt['text']
+        active_task["row"] = row
 
 
     def settings_window(self):
@@ -157,22 +194,23 @@ class UI:
             self.off.destroy()
 
 
+    def increment_time_label(self):
+        # check for the currently selected active task name
+        self.currently_selected_task_name = active_task.get("name")
+        # if no task is selected, increment Resting by default
+        # add this time to dictionary as value to task name as key
+        if not self.currently_selected_task_name in task_accumulated_time:
+            task_accumulated_time[self.currently_selected_task_name] = 1
+        else:
+            task_accumulated_time[self.currently_selected_task_name] += 1
+        # refresh time label with new accumulated time from the dict
+        self.time_row = active_task.get("row")
+        self.time_label_to_refresh = self.frame.grid_slaves(row=self.time_row, column=2)[0]
+        #convert the time into a 00:00:00 format
+        self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
+        self.time_label_to_refresh.configure(text=self.conv_time)
 
 
-
-
-
-
-        
 #=========================================================================
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.resizable(0,0)
-    title = root.title("Time Tracker")
-    root.wm_attributes("-topmost", 1)
-    root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
-    root.protocol("WM_DELETE_WINDOW", callback)
-    #load_settings()
-    UI(root)
-    root.mainloop()
