@@ -156,6 +156,8 @@ class UI:
         # add task name and row to active task handler
         active_task["name"] = ttt['text']
         active_task["row"] = row
+        #turn previous active label back to gray
+        self.time_label_to_refresh.configure(bg="#e6e6e6")
 
 
     def settings_window(self):
@@ -206,10 +208,10 @@ class UI:
         # refresh time label with new accumulated time from the dict
         self.time_row = active_task.get("row")
         self.time_label_to_refresh = self.frame.grid_slaves(row=self.time_row, column=2)[0]
-        #convert the time into a 00:00:00 format
+        # convert the time into a 00:00:00 format
         self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
-        self.time_label_to_refresh.configure(text=self.conv_time)
-
+        self.time_label_to_refresh.configure(text=self.conv_time, bg="green")
+        
 
 #=========================================================================
 
@@ -223,3 +225,4 @@ if __name__ == "__main__":
     #load_settings()
     UI(root)
     root.mainloop()
+    
