@@ -12,11 +12,15 @@ import win32process
 import json
 import sys
 
-path = "C:\\Users\\Simon\\Desktop\\time_tracker\\dumps\\"
-filename = datetime.datetime.now()
 entry_text = ""
+
+# autosave and save location
 autosave_inc = 0
-autosave_max = 10 # save automatically every 20(Default) seconds/cycles
+autosave_max = 20 # save automatically every 20(Default) seconds/cycles
+currentDirectory = os.getcwd()
+path = currentDirectory+"\\dumps\\"
+filename = datetime.datetime.now()
+autosave = ""
 
 #name and row of the currently selected active task
 active_task = {
@@ -24,7 +28,7 @@ active_task = {
     "row" : 0,
 }
 
-
+# empty or active
 grid_cells = {
     "1" : "empty",
     "2" : "empty",
@@ -46,6 +50,23 @@ def callback():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
         root.destroy()
 
+def load_settings():
+    global autosave_max
+    file = open(currentDirectory+"\\" + "config.txt", "r")
+    contents = file.readlines()
+    file.close
+
+    for line in contents:
+        if "autosave" in line:
+            x = line.split(sep="=")
+            autosave_max = int(x[1])
+
+def save_settings():
+    autosave_max = int(autosave.get())
+    file = open(currentDirectory+"\\" + "config.txt", "w")
+    file.write("autosave=" + str(autosave_max))
+    file.close
+
 #Convert seconds into hours, minutes and seconds to be displayed
 def convert(seconds): 
     seconds = seconds % (24 * 3600) 
@@ -58,45 +79,52 @@ def convert(seconds):
 
 class UI:
     def __init__(self, parent):
-        global index
-        global entry_text
-        global entry
+        global entry_text, entry, autosave, autosave_max
 
-        tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.75, rely=0.025, relwidth=0.2)
-        #tk.Button(root, text="Add", command=self.addnew).place(relx=0.02, rely=0.1, relwidth=0.1)
+        tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.55, rely=0.025, relwidth=0.2)
 
         entry = tk.StringVar()
         self.entry_space = tk.Entry(root, textvariable=entry)
-        self.entry_space.place(relx=0.13, rely=0.1, relheight=0.07, relwidth=0.6)
+        self.entry_space.place(relx=0.05, rely=0.1, relheight=0.07, relwidth=0.5)
         entry.set(entry_text)
         
-        tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.75, rely=0.1, relwidth=0.2, relheight=0.064)
+        tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.55, rely=0.1, relwidth=0.2, relheight=0.064)
         self.on_tb_destroyed = tk.Button(root, text="On", command=self.on_off)
-        self.on_tb_destroyed.place(relx=0.75, rely=0.1, relwidth=0.1)
+        self.on_tb_destroyed.place(relx=0.55, rely=0.1, relwidth=0.1)
 
         self.frame = tk.LabelFrame(root, text="Tasks")
-        self.frame.place(relx=0.018, rely=0.2, relwidth=0.9, relheight=0.77)
+        self.frame.place(relx=0.018, rely=0.2, relwidth=0.75, relheight=0.77)
 
         b0 = tk.Button(self.frame, text="  ", relief=tk.RIDGE).grid(row=0 , column=0)
         self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
         self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=0, column=2)
 
-        self.b1 = tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
-        self.b2 = tk.Button(self.frame, text="+", command=lambda row=2: self.addnew(row)).grid(row=2 , column=0)
-        self.b3 = tk.Button(self.frame, text="+", command=lambda row=3: self.addnew(row)).grid(row=3 , column=0)
-        self.b4 = tk.Button(self.frame, text="+", command=lambda row=4: self.addnew(row)).grid(row=4 , column=0)
-        self.b5 = tk.Button(self.frame, text="+", command=lambda row=5: self.addnew(row)).grid(row=5 , column=0)
-        self.b6 = tk.Button(self.frame, text="+", command=lambda row=6: self.addnew(row)).grid(row=6 , column=0)
-        self.b7 = tk.Button(self.frame, text="+", command=lambda row=7: self.addnew(row)).grid(row=7 , column=0)
-        self.b8 = tk.Button(self.frame, text="+", command=lambda row=8: self.addnew(row)).grid(row=8 , column=0)
-        self.b9 = tk.Button(self.frame, text="+", command=lambda row=9: self.addnew(row)).grid(row=9 , column=0)
-        self.b10 = tk.Button(self.frame, text="+", command=lambda row=10: self.addnew(row)).grid(row=10 , column=0)
-        
+        tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=2: self.addnew(row)).grid(row=2 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=3: self.addnew(row)).grid(row=3 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=4: self.addnew(row)).grid(row=4 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=5: self.addnew(row)).grid(row=5 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=6: self.addnew(row)).grid(row=6 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=7: self.addnew(row)).grid(row=7 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=8: self.addnew(row)).grid(row=8 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=9: self.addnew(row)).grid(row=9 , column=0)
+        tk.Button(self.frame, text="+", command=lambda row=10: self.addnew(row)).grid(row=10 , column=0)
+
+        # settings pane
+        self.settings_pane = tk.LabelFrame(root, text="Settings")
+        self.settings_pane.place(relx=0.78, rely=0.02, relwidth=0.2, relheight=0.95)
+        tk.Label(self.settings_pane, text="Autosave (sec): ").place(x=1, y=1)
+
+        autosave = tk.StringVar()
+        tk.Entry(self.settings_pane, width=3, textvariable=autosave).place(x=90, y=1)
+        autosave.set(autosave_max)
+        tk.Button(self.settings_pane, text="Save Settings", command=save_settings).place(relx=0.1, rely=0.5)
+
         # variable storing time
         self.seconds = 0
         # label displaying time
         self.label = tk.Label(parent, text="0 s", font="Arial 20", width=10)
-        self.label.pack()
+        self.label.place(relx=0.1)
         # start the timer
         self.label.after(1000, self.refresh_label)
 
@@ -196,7 +224,7 @@ class UI:
         if self.loop_state == 0: #start timer
             self.loop_state += 1
             self.off = tk.Button(root, text="Off", command=self.on_off)
-            self.off.place(relx=0.85, rely=0.1, relwidth=0.1)
+            self.off.place(relx=0.65, rely=0.1, relwidth=0.1)
             try:
                 self.on.destroy()
             except:
@@ -204,7 +232,7 @@ class UI:
         elif self.loop_state == 1: #stop timer
             self.loop_state -= 1
             self.on = tk.Button(root, text="On", command=self.on_off)
-            self.on.place(relx=0.75, rely=0.1, relwidth=0.1)
+            self.on.place(relx=0.55, rely=0.1, relwidth=0.1)
             self.off.destroy()
 
 
@@ -238,7 +266,7 @@ if __name__ == "__main__":
     root.wm_attributes("-topmost", 1)
     root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
     root.protocol("WM_DELETE_WINDOW", callback)
-    #load_settings()
+    load_settings()
     UI(root)
     root.mainloop()
     
