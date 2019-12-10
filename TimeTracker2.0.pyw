@@ -81,11 +81,11 @@ class UI:
     def __init__(self, parent):
         global entry_text, entry, autosave, autosave_max
 
-        tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.55, rely=0.025, relwidth=0.2)
+        #tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.55, rely=0.025, relwidth=0.2)
 
         entry = tk.StringVar()
         self.entry_space = tk.Entry(root, textvariable=entry)
-        self.entry_space.place(relx=0.05, rely=0.1, relheight=0.07, relwidth=0.5)
+        self.entry_space.place(relx=0.05, rely=0.1, relheight=0.07, relwidth=0.47)
         entry.set(entry_text)
         
         tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.55, rely=0.1, relwidth=0.2, relheight=0.064)
@@ -118,7 +118,8 @@ class UI:
         autosave = tk.StringVar()
         tk.Entry(self.settings_pane, width=3, textvariable=autosave).place(x=90, y=1)
         autosave.set(autosave_max)
-        tk.Button(self.settings_pane, text="Save Settings", command=save_settings).place(relx=0.1, rely=0.5)
+        tk.Button(self.settings_pane, text="Save Settings", command=save_settings).place(relx=0.15, rely=0.5)
+        tk.Button(self.settings_pane, text="About", command=self.about).place(relx=.01, rely=0.92, relwidth=.95)
 
         # variable storing time
         self.seconds = 0
@@ -200,17 +201,17 @@ class UI:
         self.time_label_to_refresh.configure(bg="#e6e6e6")
 
 
-    def settings_window(self):
+    def about(self):
         self.top = tk.Toplevel()
         self.top.resizable(0,0)
         self.top.title("Settings")
-        self.top.protocol("WM_DELETE_WINDOW", self.settings_callback)
+        self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
         self.top.wm_attributes("-topmost", 1)
-        self.top.geometry("300x200+850+250") #WidthxHeight and x+y
+        self.top.geometry("200x100+850+250") #WidthxHeight and x+y
         root.iconify()
-        tk.Label(self.top, text="Nothing in here yet.").pack()
+        tk.Label(self.top, text="Version: 1.0\n11.12.2019\nCreated by:\nSimeon P. Todorov\nContact me:\nthe_nexus@mail.bg").pack()
 
-    def settings_callback(self):
+    def about_callback(self):
         root.deiconify()
         self.top.destroy()
 
