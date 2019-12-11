@@ -101,7 +101,8 @@ class UI:
 
         b0 = tk.Button(self.frame, text="  ", relief=tk.RIDGE).grid(row=0 , column=0)
         self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
-        self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=0, column=2)
+        self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
+        self.time_elapsed.grid(row=0, column=2)
 
         tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
         tk.Button(self.frame, text="+", command=lambda row=2: self.addnew(row)).grid(row=2 , column=0)
@@ -115,7 +116,18 @@ class UI:
         tk.Button(self.frame, text="+", command=lambda row=10: self.addnew(row)).grid(row=10 , column=0)
 
 
-
+        #load saved times from last file of the current day
+        try:
+            with open(path + "log "+filename.strftime("%d %B %Y")+".txt", "r") as load_times:
+                accu_times = eval(load_times.read())
+                for key in accu_times:
+                    # add this time to dictionary as value to task name as key
+                    try:
+                        task_accumulated_time[key] = accu_times.get(key)
+                    except:
+                        pass
+        except:
+            print("No log for this day to load.")
 
         #load grid layout data
         with open(currentDirectory+"\\grid.txt", "r") as inf:
@@ -126,10 +138,11 @@ class UI:
             #print(key, cell_name)
             if cell_name != "empty" and cell_name != "Resting":
                 self.task = tk.Button(self.frame, text=cell_name, width=40, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
-                self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=key, column=2)
+                self.time_elapsed = tk.Label(self.frame, text=task_accumulated_time.get(cell_name), width=15, relief=tk.RIDGE).grid(row=key, column=2)
                 self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=3)
                 grid_cells[str(key)] = cell_name
-
+            elif cell_name == "Resting":
+                self.time_elapsed.configure(text=task_accumulated_time.get(cell_name))
 
 
 
@@ -147,7 +160,7 @@ class UI:
         # variable storing time
         self.seconds = 0
         # label displaying time
-        self.label = tk.Label(parent, text="0 s", font="Arial 20", width=10)
+        self.label = tk.Label(parent, text="00:00:00", font="Arial 20", width=10)
         self.label.place(relx=0.1)
         # start the timer
         self.label.after(1000, self.refresh_label)
