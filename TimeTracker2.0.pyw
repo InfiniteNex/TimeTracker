@@ -30,6 +30,7 @@ active_task = {
 
 # empty or active
 grid_cells = {
+    "0" : "Resting",
     "1" : "empty",
     "2" : "empty",
     "3" : "empty",
@@ -61,11 +62,14 @@ def load_settings():
             x = line.split(sep="=")
             autosave_max = int(x[1])
 
+
+
 def save_settings():
     autosave_max = int(autosave.get())
     file = open(currentDirectory+"\\" + "config.txt", "w")
     file.write("autosave=" + str(autosave_max))
     file.close
+    save_data()
 
 #Convert seconds into hours, minutes and seconds to be displayed
 def convert(seconds): 
@@ -109,6 +113,25 @@ class UI:
         tk.Button(self.frame, text="+", command=lambda row=8: self.addnew(row)).grid(row=8 , column=0)
         tk.Button(self.frame, text="+", command=lambda row=9: self.addnew(row)).grid(row=9 , column=0)
         tk.Button(self.frame, text="+", command=lambda row=10: self.addnew(row)).grid(row=10 , column=0)
+
+
+
+
+        #load grid layout data
+        with open(currentDirectory+"\\grid.txt", "r") as inf:
+            grid_cells_load = eval(inf.read())
+        #parse loaded grid data
+        for key in grid_cells_load:
+            cell_name = grid_cells_load.get(key)
+            #print(key, cell_name)
+            if cell_name != "empty" and cell_name != "Resting":
+                self.task = tk.Button(self.frame, text=cell_name, width=40, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
+                self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=key, column=2)
+                self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=3)
+                grid_cells[str(key)] = cell_name
+
+
+
 
         # settings pane
         self.settings_pane = tk.LabelFrame(root, text="Settings")
@@ -163,7 +186,7 @@ class UI:
             self.task = tk.Button(self.frame, text=entry_text, width=40, command=lambda row=row: self.task_activate(row)).grid(row=row, column=1)
             self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=row, column=2)
             self.delete_b = tk.Button(self.frame, text="-", command=lambda row=row: self.delete_row(row)).grid(row=row, column=3)
-            grid_cells[str(row)] = "active"
+            grid_cells[str(row)] = entry_text
 
     # delete this specific row of buttons, indexes: 2-name, 1-time, 0-delete button
     def delete_row(self, row):
@@ -255,8 +278,13 @@ class UI:
         
 
 def save_data():
+    #save names and accumulated times
     with open(path + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
         json.dump(task_accumulated_time, outputfile)
+
+    #save grid layout
+    with open(currentDirectory+"\\grid.txt", "w") as outputfile:
+        json.dump(grid_cells, outputfile)
 
 #=========================================================================
 
