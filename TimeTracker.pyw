@@ -18,7 +18,7 @@ current_year = datetime.datetime.now()
 autosave_inc = 0
 autosave_max = 20 # save automatically every 20(Default) seconds/cycles
 currentDirectory = os.getcwd()
-path = currentDirectory+"\\dumps\\"
+path = currentDirectory+"\\logs\\"
 filename = datetime.datetime.now()
 autosave = ""
 
@@ -247,6 +247,7 @@ class UI:
         self.top = tk.Toplevel()
         self.top.resizable(0,0)
         self.top.title("Settings")
+        self.top.iconbitmap("icon_OKt_icon.ico")
         self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
         self.top.wm_attributes("-topmost", 1)
         self.top.geometry("200x90+850+250") #WidthxHeight and x+y
@@ -301,6 +302,7 @@ class UI:
         self.top = tk.Toplevel()
         self.top.resizable(0,0)
         self.top.title("Logs")
+        self.top.iconbitmap("icon_OKt_icon.ico")
         self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
         self.top.wm_attributes("-topmost", 1)
         self.top.geometry("600x400+800+150") #WidthxHeight and x+y
@@ -311,7 +313,7 @@ class UI:
         
 
         
-        #load file for chosen date from the logs folder (\\dumps)
+        #load file for chosen date from the logs folder (\\logs)
         self.load_log_file = {}
         try:
             with open(path + "log " + self.get_cal_date.strftime("%d %B %Y") + ".txt", "r") as log_file:
@@ -341,6 +343,7 @@ if __name__ == "__main__":
     root.resizable(0,0)
     title = root.title("Time Tracker")
     root.wm_attributes("-topmost", 1)
+    root.iconbitmap("icon_OKt_icon.ico")
     root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
     root.protocol("WM_DELETE_WINDOW", callback)
     load_settings()
