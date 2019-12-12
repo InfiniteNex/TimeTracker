@@ -49,6 +49,7 @@ task_accumulated_time = {}
 #=========================================================================
 def callback():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
+        save_settings()
         root.destroy()
 
 def load_settings():
@@ -310,17 +311,25 @@ class UI:
         tk.Label(self.top, text="Showing logs for:").pack()
         self.get_cal_date = self.cal.get_date()
         tk.Label(self.top, text=self.get_cal_date).pack()
-        
+        self.display_logs = tk.LabelFrame(self.top)
+        self.display_logs.place(relx=0.1, rely=0.2, relwidth=0.8, relheight=0.7)
 
         
         #load file for chosen date from the logs folder (\\logs)
         self.load_log_file = {}
+        self.index_rows = 0
         try:
             with open(path + "log " + self.get_cal_date.strftime("%d %B %Y") + ".txt", "r") as log_file:
                 self.load_log_file = eval(log_file.read())
                 log_file.close()
                 #display the data in a readable format
-                tk.Label(self.top, text=self.load_log_file).pack()
+                for key in self.load_log_file:
+                    task_time = self.load_log_file.get(key)
+                    task_time_conv = convert(task_time)
+                    tk.Label(self.display_logs, text=key).grid(row=self.index_rows, column=0)
+                    tk.Label(self.display_logs, text=task_time_conv).grid(row=self.index_rows, column=1)
+                    self.index_rows += 1
+
         except:
             tk.Label(self.top, text="No log data for chosen date.").pack()
 
