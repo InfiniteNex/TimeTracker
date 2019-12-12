@@ -13,7 +13,7 @@ import json
 import sys
 
 entry_text = ""
-
+current_year = datetime.datetime.now()
 # autosave and save location
 autosave_inc = 0
 autosave_max = 20 # save automatically every 20(Default) seconds/cycles
@@ -114,6 +114,12 @@ class UI:
         tk.Button(self.frame, text="+", command=lambda row=8: self.addnew(row)).grid(row=8 , column=0)
         tk.Button(self.frame, text="+", command=lambda row=9: self.addnew(row)).grid(row=9 , column=0)
         tk.Button(self.frame, text="+", command=lambda row=10: self.addnew(row)).grid(row=10 , column=0)
+
+
+        # calendar widget
+        self.cal = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, year=current_year.year)
+        self.cal.place(relx=0.55, rely=0.025)
+        tk.Button(root, text="Load", command=self.load_date_log).place(relx=0.71, rely=0.02)
 
 
         #load saved times from last file of the current day
@@ -243,9 +249,9 @@ class UI:
         self.top.title("Settings")
         self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
         self.top.wm_attributes("-topmost", 1)
-        self.top.geometry("200x100+850+250") #WidthxHeight and x+y
+        self.top.geometry("200x90+850+250") #WidthxHeight and x+y
         root.iconify()
-        tk.Label(self.top, text="Version: 1.0\n11.12.2019\nCreated by:\nSimeon P. Todorov\nContact me:\nthe_nexus@mail.bg").pack()
+        tk.Label(self.top, text="Version: 1.0\n2019\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg").pack()
 
     def about_callback(self):
         root.deiconify()
@@ -290,6 +296,34 @@ class UI:
         self.time_label_to_refresh.configure(text=self.conv_time, bg="green")
         
 
+    def load_date_log(self):
+        #open a top window
+        self.top = tk.Toplevel()
+        self.top.resizable(0,0)
+        self.top.title("Logs")
+        self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
+        self.top.wm_attributes("-topmost", 1)
+        self.top.geometry("600x400+800+150") #WidthxHeight and x+y
+        root.iconify()
+        tk.Label(self.top, text="Showing logs for:").pack()
+        self.get_cal_date = self.cal.get_date()
+        tk.Label(self.top, text=self.get_cal_date).pack()
+        
+
+        
+        #load file for chosen date from the logs folder (\\dumps)
+        self.load_log_file = {}
+        try:
+            with open(path + "log " + self.get_cal_date.strftime("%d %B %Y") + ".txt", "r") as log_file:
+                self.load_log_file = eval(log_file.read())
+                log_file.close()
+                #display the data in a readable format
+                tk.Label(self.top, text=self.load_log_file).pack()
+        except:
+            tk.Label(self.top, text="No log data for chosen date.").pack()
+
+        
+
 def save_data():
     #save names and accumulated times
     with open(path + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
@@ -298,6 +332,7 @@ def save_data():
     #save grid layout
     with open(currentDirectory+"\\grid.txt", "w") as outputfile:
         json.dump(grid_cells, outputfile)
+
 
 #=========================================================================
 
