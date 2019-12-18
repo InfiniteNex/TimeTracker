@@ -1,5 +1,6 @@
 import tkinter as tk
 import os
+from os import path
 from tkinter import messagebox as tkMessageBox
 from tkcalendar import Calendar, DateEntry
 import datetime
@@ -11,6 +12,7 @@ import psutil
 import win32process
 import json
 import sys
+import winshell
 
 entry_text = ""
 current_year = datetime.datetime.now()
@@ -18,8 +20,7 @@ current_year = datetime.datetime.now()
 autosave_inc = 0
 autosave_max = 20 # save automatically every 20(Default) seconds/cycles
 currentDirectory = os.getcwd()
-path = currentDirectory+"\\logs\\"
-filename = datetime.datetime.now()
+path_to_logs = currentDirectory+"\\logs\\"
 autosave = ""
 
 #name and row of the currently selected active task
@@ -46,7 +47,14 @@ grid_cells = {
 # list with all tasks and their respective accumulated times
 task_accumulated_time = {}
 
+
 #=========================================================================
+
+def today():
+    global filename
+    filename = datetime.datetime.now()
+
+
 def callback():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
         save_settings()
@@ -62,6 +70,7 @@ def load_settings():
         if "autosave" in line:
             x = line.split(sep="=")
             autosave_max = int(x[1])
+
 
 
 
@@ -125,7 +134,7 @@ class UI:
 
         #load saved times from last file of the current day
         try:
-            with open(path + "log "+filename.strftime("%d %B %Y")+".txt", "r") as load_times:
+            with open(path_to_logs + "log "+filename.strftime("%d %B %Y")+".txt", "r") as load_times:
                 accu_times = eval(load_times.read())
                 for key in accu_times:
                     # add this time to dictionary as value to task name as key
@@ -155,12 +164,35 @@ class UI:
 
         # settings pane
         self.settings_pane = tk.LabelFrame(root, text="Settings")
-        self.settings_pane.place(relx=0.78, rely=0.02, relwidth=0.2, relheight=0.95)
+        self.settings_pane.place(relx=0.78, rely=0.02, relwidth=0.22, relheight=0.95)
         tk.Label(self.settings_pane, text="Autosave (sec): ").place(x=1, y=1)
 
         autosave = tk.StringVar()
         tk.Entry(self.settings_pane, width=3, textvariable=autosave).place(x=90, y=1)
         autosave.set(autosave_max)
+        
+        
+        self.desktop_shortcut_state = tk.IntVar(self.settings_pane)
+        self.startup_shortcut_state = tk.IntVar(self.settings_pane)
+
+        tk.Checkbutton(self.settings_pane, text="Start with Windows", variable=self.startup_shortcut_state, command=startup_shortcut, onvalue = 1, offvalue = 0).place(x=1, y=30)
+        tk.Checkbutton(self.settings_pane, text="Desktop Shortcut", variable=self.desktop_shortcut_state ,command=desktop_shortcut, onvalue = 1, offvalue = 0).place(x=1, y=60)
+        
+        #check if a desktop shortcut exists and set the control state
+        desktop = winshell.desktop()
+        if path.exists(os.path.join(desktop, "TimeTracker.lnk")):
+            self.desktop_shortcut_state.set(1)
+        else:
+            self.desktop_shortcut_state.set(0)
+
+        #check if a startup shortcut exists and set the control state
+        startup = winshell.startup()
+        if path.exists(os.path.join(startup, "TimeTracker.lnk")):
+            self.startup_shortcut_state.set(1)
+        else:
+            self.startup_shortcut_state.set(0)
+
+
         tk.Button(self.settings_pane, text="Save Settings", command=save_settings).place(relx=0.15, rely=0.5)
         tk.Button(self.settings_pane, text="About", command=self.about).place(relx=.01, rely=0.92, relwidth=.95)
 
@@ -207,6 +239,9 @@ class UI:
             self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=row, column=2)
             self.delete_b = tk.Button(self.frame, text="-", command=lambda row=row: self.delete_row(row)).grid(row=row, column=3)
             grid_cells[str(row)] = entry_text
+        elif entry_text == "":
+            tkMessageBox.showerror("Error", "Please add a name before creating new task!")
+
 
     # delete this specific row of buttons, indexes: 2-name, 1-time, 0-delete button
     def delete_row(self, row):
@@ -279,6 +314,7 @@ class UI:
             self.on = tk.Button(root, text="On", command=self.on_off)
             self.on.place(relx=0.55, rely=0.1, relwidth=0.1)
             self.off.destroy()
+            save_data()
 
 
     def increment_time_label(self):
@@ -319,7 +355,7 @@ class UI:
         self.load_log_file = {}
         self.index_rows = 0
         try:
-            with open(path + "log " + self.get_cal_date.strftime("%d %B %Y") + ".txt", "r") as log_file:
+            with open(path_to_logs + "log " + self.get_cal_date.strftime("%d %B %Y") + ".txt", "r") as log_file:
                 self.load_log_file = eval(log_file.read())
                 log_file.close()
                 #display the data in a readable format
@@ -336,14 +372,36 @@ class UI:
         
 
 def save_data():
+    today()
     #save names and accumulated times
-    with open(path + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
+    with open(path_to_logs + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
         json.dump(task_accumulated_time, outputfile)
 
     #save grid layout
     with open(currentDirectory+"\\grid.txt", "w") as outputfile:
         json.dump(grid_cells, outputfile)
 
+def startup_shortcut():
+    startup = winshell.startup()
+    if path.exists(os.path.join(startup, "TimeTracker.lnk")):
+        os.remove(os.path.join(startup, "TimeTracker.lnk"))
+    else:
+        with winshell.shortcut(os.path.join(startup, "TimeTracker.lnk")) as shortcut: # name of the shortcut and where to place it
+            shortcut.path = currentDirectory + "\\TimeTracker.exe"               # target .exe for the shortcut to execute
+            shortcut.icon = sys.executable, 0
+            shortcut.description = "TimeTracker - Shortcut"
+            shortcut.working_directory = currentDirectory
+
+def desktop_shortcut():
+    desktop = winshell.desktop()
+    if path.exists(os.path.join(desktop, "TimeTracker.lnk")):
+        os.remove(os.path.join(desktop, "TimeTracker.lnk"))
+    else:
+        with winshell.shortcut(os.path.join(desktop, "TimeTracker.lnk")) as shortcut: # name of the shortcut and where to place it
+            shortcut.path = currentDirectory + "\\TimeTracker.exe"               # target .exe for the shortcut to execute
+            shortcut.icon = sys.executable, 0
+            shortcut.description = "TimeTracker - Shortcut"
+            shortcut.working_directory = currentDirectory
 
 #=========================================================================
 
@@ -355,6 +413,7 @@ if __name__ == "__main__":
     root.iconbitmap("icon_OKt_icon.ico")
     root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
     root.protocol("WM_DELETE_WINDOW", callback)
+    today()
     load_settings()
     UI(root)
     root.mainloop()
