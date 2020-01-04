@@ -64,7 +64,7 @@ def load_settings():
     global autosave_max
     file = open(currentDirectory+"\\" + "config.txt", "r")
     contents = file.readlines()
-    file.close
+    file.close()
 
     for line in contents:
         if "autosave" in line:
@@ -78,7 +78,7 @@ def save_settings():
     autosave_max = int(autosave.get())
     file = open(currentDirectory+"\\" + "config.txt", "w")
     file.write("autosave=" + str(autosave_max))
-    file.close
+    file.close()
     save_data()
 
 #Convert seconds into hours, minutes and seconds to be displayed
