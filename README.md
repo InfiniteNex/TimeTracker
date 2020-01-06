@@ -12,4 +12,4 @@ To uninstall just delete the program's folder. No registry files are being writt
 # Requirements
 
 ### Software
-No requirements needed. The program is packaged with its own Python version and modules.
+Windows
