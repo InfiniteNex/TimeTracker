@@ -47,13 +47,25 @@ grid_cells = {
 # list with all tasks and their respective accumulated times
 task_accumulated_time = {}
 
+current_day = None
+
 
 #=========================================================================
 
-def today():
-    global filename
-    filename = datetime.datetime.now()
+def startup_today():
+    global filename, current_day
 
+    filename = datetime.datetime.now() #set the filename to the current day
+      
+def today():
+    global filename, current_day, grid_cells
+    #check the current day and compare it to the old day registry
+    current_day = datetime.datetime.now()
+    if current_day != filename:
+        # empty the task times from the previous day
+        task_accumulated_time = {}
+    else:
+        pass
 
 def callback():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
@@ -64,21 +76,18 @@ def load_settings():
     global autosave_max
     file = open(currentDirectory+"\\" + "config.txt", "r")
     contents = file.readlines()
-    file.close()
+    file.close
 
     for line in contents:
         if "autosave" in line:
             x = line.split(sep="=")
             autosave_max = int(x[1])
 
-
-
-
 def save_settings():
     autosave_max = int(autosave.get())
     file = open(currentDirectory+"\\" + "config.txt", "w")
     file.write("autosave=" + str(autosave_max))
-    file.close()
+    file.close
     save_data()
 
 #Convert seconds into hours, minutes and seconds to be displayed
@@ -99,20 +108,23 @@ class UI:
 
         entry = tk.StringVar()
         self.entry_space = tk.Entry(root, textvariable=entry)
-        self.entry_space.place(relx=0.05, rely=0.1, relheight=0.07, relwidth=0.47)
+        self.entry_space.place(relx=0.02, rely=0.01, relheight=0.07, relwidth=0.22)
         entry.set(entry_text)
         
-        tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.55, rely=0.1, relwidth=0.2, relheight=0.064)
+        tk.Label(root, text="On              Off", bg="gray", relief=tk.RIDGE).place(relx=0.245, rely=0.01, relwidth=0.2, relheight=0.064)
         self.on_tb_destroyed = tk.Button(root, text="On", command=self.on_off)
-        self.on_tb_destroyed.place(relx=0.55, rely=0.1, relwidth=0.1)
+        self.on_tb_destroyed.place(relx=0.245, rely=0.01, relwidth=0.1, relheight=0.064)
 
         self.frame = tk.LabelFrame(root, text="Tasks")
-        self.frame.place(relx=0.018, rely=0.2, relwidth=0.75, relheight=0.77)
+        self.frame.place(relx=0.018, rely=0.1, relwidth=0.75, relheight=0.87)
 
         b0 = tk.Button(self.frame, text="  ", relief=tk.RIDGE).grid(row=0 , column=0)
-        self.task = tk.Button(self.frame, text="Resting", width=40, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
+        self.task = tk.Button(self.frame, text="Resting", width=30, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
         self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
         self.time_elapsed.grid(row=0, column=2)
+        self.add_time = tk.Button(self.frame, text="Add Time").grid(row=0, column=3)
+
+
 
         tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
         tk.Button(self.frame, text="+", command=lambda row=2: self.addnew(row)).grid(row=2 , column=0)
@@ -128,8 +140,8 @@ class UI:
 
         # calendar widget
         self.cal = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, year=current_year.year)
-        self.cal.place(relx=0.55, rely=0.025)
-        tk.Button(root, text="Load", command=self.load_date_log).place(relx=0.71, rely=0.02)
+        self.cal.place(relx=0.55, rely=0.015)
+        tk.Button(root, text="Load", command=self.load_date_log).place(relx=0.71, rely=0.01)
 
 
         #load saved times from last file of the current day
@@ -145,6 +157,7 @@ class UI:
         except:
             print("No log for this day to load.")
 
+
         #load grid layout data
         with open(currentDirectory+"\\grid.txt", "r") as inf:
             grid_cells_load = eval(inf.read())
@@ -153,13 +166,13 @@ class UI:
             cell_name = grid_cells_load.get(key)
             #print(key, cell_name)
             if cell_name != "empty" and cell_name != "Resting":
-                self.task = tk.Button(self.frame, text=cell_name, width=40, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
+                self.task = tk.Button(self.frame, text=cell_name, width=30, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
                 self.time_elapsed = tk.Label(self.frame, text=task_accumulated_time.get(cell_name), width=15, relief=tk.RIDGE).grid(row=key, column=2)
-                self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=3)
+                self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=4)
+                self.add_time = tk.Button(self.frame, text="Add Time").grid(row=key, column=3)
                 grid_cells[str(key)] = cell_name
             elif cell_name == "Resting":
                 self.time_elapsed.configure(text=task_accumulated_time.get(cell_name))
-
 
 
         # settings pane
@@ -194,13 +207,13 @@ class UI:
 
 
         tk.Button(self.settings_pane, text="Save Settings", command=save_settings).place(relx=0.15, rely=0.5)
-        tk.Button(self.settings_pane, text="About", command=self.about).place(relx=.01, rely=0.92, relwidth=.95)
+        tk.Button(self.settings_pane, text="About", command=self.about).place(relx=.01, rely=0.90, relwidth=.95)
 
         # variable storing time
         self.seconds = 0
         # label displaying time
-        self.label = tk.Label(parent, text="00:00:00", font="Arial 20", width=10)
-        self.label.place(relx=0.1)
+        self.label = tk.Label(parent, text="00:00:00", font="Arial 10", width=7)
+        self.label.place(relx=0.446, rely = 0.015)
         # start the timer
         self.label.after(1000, self.refresh_label)
 
@@ -235,13 +248,13 @@ class UI:
         cell_availability = grid_cells[str(row)]
         
         if cell_availability == "empty" and entry_text != "":
-            self.task = tk.Button(self.frame, text=entry_text, width=40, command=lambda row=row: self.task_activate(row)).grid(row=row, column=1)
+            self.task = tk.Button(self.frame, text=entry_text, width=30, command=lambda row=row: self.task_activate(row)).grid(row=row, column=1)
             self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=row, column=2)
-            self.delete_b = tk.Button(self.frame, text="-", command=lambda row=row: self.delete_row(row)).grid(row=row, column=3)
+            self.add_time = tk.Button(self.frame, text="Add Time").grid(row=row, column=3)
+            self.delete_b = tk.Button(self.frame, text="-", command=lambda row=row: self.delete_row(row)).grid(row=row, column=4)
             grid_cells[str(row)] = entry_text
         elif entry_text == "":
             tkMessageBox.showerror("Error", "Please add a name before creating new task!")
-
 
     # delete this specific row of buttons, indexes: 2-name, 1-time, 0-delete button
     def delete_row(self, row):
@@ -251,16 +264,16 @@ class UI:
             active_task["name"] = "Resting"
             active_task["row"] = 0
 
+        widget_to_delete = self.frame.grid_slaves(row=row)[3]
+        widget_to_delete.destroy()  #task_name
         widget_to_delete = self.frame.grid_slaves(row=row)[2]
         #print(widget_to_delete, widget_to_delete['text'])
-        widget_to_delete.destroy()
+        widget_to_delete.destroy()  #time_label
         widget_to_delete = self.frame.grid_slaves(row=row)[1]
-        widget_to_delete.destroy()
+        widget_to_delete.destroy()  #add_time
         widget_to_delete = self.frame.grid_slaves(row=row)[0]
-        widget_to_delete.destroy()
+        widget_to_delete.destroy()  #delete_button
         grid_cells[str(row)] = "empty"
-
-
 
     # get the label index of the currently activated task's row
     def task_activate(self, row):
@@ -278,7 +291,6 @@ class UI:
         #turn previous active label back to gray
         self.time_label_to_refresh.configure(bg="#e6e6e6")
 
-
     def about(self):
         self.top = tk.Toplevel()
         self.top.resizable(0,0)
@@ -288,13 +300,14 @@ class UI:
         self.top.wm_attributes("-topmost", 1)
         self.top.geometry("200x90+850+250") #WidthxHeight and x+y
         root.iconify()
-        tk.Label(self.top, text="Version: 1.0\n2019\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg").pack()
+        tk.Label(self.top, text="Version: 1.1\n2019\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg").pack()
 
     def about_callback(self):
         root.deiconify()
         self.top.destroy()
 
     def on_off(self):
+        today() # check the current day
         try:
             self.on_tb_destroyed.destroy()
         except:
@@ -304,7 +317,7 @@ class UI:
         if self.loop_state == 0: #start timer
             self.loop_state += 1
             self.off = tk.Button(root, text="Off", command=self.on_off)
-            self.off.place(relx=0.65, rely=0.1, relwidth=0.1)
+            self.off.place(relx=0.345, rely=0.01, relwidth=0.1, relheight=0.064)
             try:
                 self.on.destroy()
             except:
@@ -312,10 +325,9 @@ class UI:
         elif self.loop_state == 1: #stop timer
             self.loop_state -= 1
             self.on = tk.Button(root, text="On", command=self.on_off)
-            self.on.place(relx=0.55, rely=0.1, relwidth=0.1)
+            self.on.place(relx=0.245, rely=0.01, relwidth=0.1, relheight=0.064)
             self.off.destroy()
             save_data()
-
 
     def increment_time_label(self):
         # check for the currently selected active task name
@@ -333,7 +345,6 @@ class UI:
         self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
         self.time_label_to_refresh.configure(text=self.conv_time, bg="green")
         
-
     def load_date_log(self):
         #open a top window
         self.top = tk.Toplevel()
@@ -372,7 +383,6 @@ class UI:
         
 
 def save_data():
-    today()
     #save names and accumulated times
     with open(path_to_logs + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
         json.dump(task_accumulated_time, outputfile)
@@ -411,9 +421,9 @@ if __name__ == "__main__":
     title = root.title("Time Tracker")
     root.wm_attributes("-topmost", 1)
     root.iconbitmap("icon_OKt_icon.ico")
-    root.geometry("600x400+800+150") #WidthxHeight and x+y of main window
+    root.geometry("600x360+800+150") #WidthxHeight and x+y of main window
     root.protocol("WM_DELETE_WINDOW", callback)
-    today()
+    startup_today() # check the current day on startup
     load_settings()
     UI(root)
     root.mainloop()
