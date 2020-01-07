@@ -2,6 +2,7 @@ import tkinter as tk
 import os
 from os import path
 from tkinter import messagebox as tkMessageBox
+from tkinter import simpledialog
 from tkcalendar import Calendar, DateEntry
 import datetime
 import getpass
@@ -122,7 +123,7 @@ class UI:
         self.task = tk.Button(self.frame, text="Resting", width=30, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
         self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
         self.time_elapsed.grid(row=0, column=2)
-        self.add_time = tk.Button(self.frame, text="Add Time").grid(row=0, column=3)
+        self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=0: self.add_time_postmortem(row)).grid(row=0, column=3)
 
 
 
@@ -168,8 +169,8 @@ class UI:
             if cell_name != "empty" and cell_name != "Resting":
                 self.task = tk.Button(self.frame, text=cell_name, width=30, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
                 self.time_elapsed = tk.Label(self.frame, text=task_accumulated_time.get(cell_name), width=15, relief=tk.RIDGE).grid(row=key, column=2)
+                self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=key: self.add_time_postmortem(row)).grid(row=key, column=3)
                 self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=4)
-                self.add_time = tk.Button(self.frame, text="Add Time").grid(row=key, column=3)
                 grid_cells[str(key)] = cell_name
             elif cell_name == "Resting":
                 self.time_elapsed.configure(text=task_accumulated_time.get(cell_name))
@@ -250,13 +251,13 @@ class UI:
         if cell_availability == "empty" and entry_text != "":
             self.task = tk.Button(self.frame, text=entry_text, width=30, command=lambda row=row: self.task_activate(row)).grid(row=row, column=1)
             self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE).grid(row=row, column=2)
-            self.add_time = tk.Button(self.frame, text="Add Time").grid(row=row, column=3)
+            self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=row: self.add_time_postmortem(row)).grid(row=row, column=3)
             self.delete_b = tk.Button(self.frame, text="-", command=lambda row=row: self.delete_row(row)).grid(row=row, column=4)
             grid_cells[str(row)] = entry_text
         elif entry_text == "":
             tkMessageBox.showerror("Error", "Please add a name before creating new task!")
 
-    # delete this specific row of buttons, indexes: 2-name, 1-time, 0-delete button
+    # delete this specific row of buttons
     def delete_row(self, row):
         # set default Resting task when deleting this one if this one is the currently selected:
         self.check_task_if_same = self.frame.grid_slaves(row=row)[2]
@@ -380,6 +381,18 @@ class UI:
         except:
             tk.Label(self.top, text="No log data for chosen date.").pack()
 
+    def add_time_postmortem(self, row):
+        #prompt for time input
+        self.time_to_add = tk.simpledialog.askstring(title="asktime", prompt="How much time do you want to add?\n(ex.: 00:30:00)")
+        #get row/task name of pressed button
+        self.write_a_better_name = self.frame.grid_slaves(row=row, column=1)
+        print(self.write_a_better_name)
+        #Convert postmortem time back into seconds
+        sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(self.time_to_add.split(":"))))
+        #add them to the currently accumulated time in the dictionary
+        #task_accumulated_time[] += self.time_to_add
+        #refresh the label 
+        
         
 
 def save_data():
