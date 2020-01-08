@@ -124,7 +124,7 @@ class UI:
         self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
         self.time_elapsed.grid(row=0, column=2)
         self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=0: self.add_time_postmortem(row)).grid(row=0, column=3)
-
+        b5 = tk.Label(self.frame).grid(row=0, column=4)
 
 
         tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
@@ -168,12 +168,14 @@ class UI:
             #print(key, cell_name)
             if cell_name != "empty" and cell_name != "Resting":
                 self.task = tk.Button(self.frame, text=cell_name, width=30, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
-                self.time_elapsed = tk.Label(self.frame, text=task_accumulated_time.get(cell_name), width=15, relief=tk.RIDGE).grid(row=key, column=2)
+                self.conv_time = convert(task_accumulated_time.get(cell_name))  #load times in 00:00:00 format rather than seconds
+                self.time_elapsed = tk.Label(self.frame, text=self.conv_time, width=15, relief=tk.RIDGE).grid(row=key, column=2)
                 self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=key: self.add_time_postmortem(row)).grid(row=key, column=3)
                 self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=4)
                 grid_cells[str(key)] = cell_name
             elif cell_name == "Resting":
-                self.time_elapsed.configure(text=task_accumulated_time.get(cell_name))
+                self.conv_time = convert(task_accumulated_time.get(cell_name))
+                self.time_elapsed.configure(text=self.conv_time)
 
 
         # settings pane
@@ -278,16 +280,11 @@ class UI:
 
     # get the label index of the currently activated task's row
     def task_activate(self, row):
-        if row == 0:
-            self.active_timer_row = self.frame.grid_slaves(row=row)[0]
-            ttt = self.frame.grid_slaves(row=row)[1]
-        else:
-            self.active_timer_row = self.frame.grid_slaves(row=row)[1]
-            ttt = self.frame.grid_slaves(row=row)[2]
+        self.active_timer_row = self.frame.grid_slaves(row=row)[1]
+        task_name = self.frame.grid_slaves(row=row)[3]
 
-        
         # add task name and row to active task handler
-        active_task["name"] = ttt['text']
+        active_task["name"] = task_name['text']
         active_task["row"] = row
         #turn previous active label back to gray
         self.time_label_to_refresh.configure(bg="#e6e6e6")
@@ -295,7 +292,7 @@ class UI:
     def about(self):
         self.top = tk.Toplevel()
         self.top.resizable(0,0)
-        self.top.title("Settings")
+        self.top.title("About")
         self.top.iconbitmap("icon_OKt_icon.ico")
         self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
         self.top.wm_attributes("-topmost", 1)
@@ -385,14 +382,21 @@ class UI:
         #prompt for time input
         self.time_to_add = tk.simpledialog.askstring(title="asktime", prompt="How much time do you want to add?\n(ex.: 00:30:00)")
         #get row/task name of pressed button
-        self.write_a_better_name = self.frame.grid_slaves(row=row, column=1)
-        print(self.write_a_better_name)
+        self.taskID_to_add_to = self.frame.grid_slaves(row=row)[3]
+        self.taskname_to_add_to = self.taskID_to_add_to['text']
         #Convert postmortem time back into seconds
-        sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(self.time_to_add.split(":"))))
+        self.convertedhrs = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(self.time_to_add.split(":"))))
         #add them to the currently accumulated time in the dictionary
-        #task_accumulated_time[] += self.time_to_add
-        #refresh the label 
-        
+        if not self.taskname_to_add_to in task_accumulated_time:
+            task_accumulated_time[self.taskname_to_add_to] = self.convertedhrs
+        else:
+            task_accumulated_time[self.taskname_to_add_to] += self.convertedhrs
+        #refresh the time label
+        save_data()
+        self.time_label = self.frame.grid_slaves(row=row)[2]
+        self.converttosec = convert(task_accumulated_time[self.taskname_to_add_to])
+        self.time_label['text'] = self.converttosec
+
         
 
 def save_data():
