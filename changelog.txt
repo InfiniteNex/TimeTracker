@@ -4,6 +4,7 @@ v1.1
 - redesigned top row of buttons and shrunk the window height
 - added "Add Time" button to add time that has passed but not tracked
 - added website to "About" section
+- opening the program now loads time labels with proper formatting
 
 Bugs
 - program still doesnt save data correctly when not closed from previous day
