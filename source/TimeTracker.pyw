@@ -168,13 +168,19 @@ class UI:
             #print(key, cell_name)
             if cell_name != "empty" and cell_name != "Resting":
                 self.task = tk.Button(self.frame, text=cell_name, width=30, command=lambda row=key: self.task_activate(row)).grid(row=key, column=1)
-                self.conv_time = convert(task_accumulated_time.get(cell_name))  #load times in 00:00:00 format rather than seconds
+                try:
+                    self.conv_time = convert(task_accumulated_time.get(cell_name))  #load times in 00:00:00 format rather than seconds
+                except:
+                    self.conv_time = 0
                 self.time_elapsed = tk.Label(self.frame, text=self.conv_time, width=15, relief=tk.RIDGE).grid(row=key, column=2)
                 self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=key: self.add_time_postmortem(row)).grid(row=key, column=3)
                 self.delete_b = tk.Button(self.frame, text="-", command=lambda row=key: self.delete_row(row)).grid(row=key, column=4)
                 grid_cells[str(key)] = cell_name
             elif cell_name == "Resting":
-                self.conv_time = convert(task_accumulated_time.get(cell_name))
+                try:
+                    self.conv_time = convert(task_accumulated_time.get(cell_name))
+                except:
+                    self.conv_time = 0
                 self.time_elapsed.configure(text=self.conv_time)
 
 
