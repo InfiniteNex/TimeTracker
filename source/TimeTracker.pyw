@@ -302,9 +302,9 @@ class UI:
         self.top.iconbitmap("icon_OKt_icon.ico")
         self.top.protocol("WM_DELETE_WINDOW", self.about_callback)
         self.top.wm_attributes("-topmost", 1)
-        self.top.geometry("200x90+850+250") #WidthxHeight and x+y
+        self.top.geometry("220x120+850+250") #WidthxHeight and x+y
         root.iconify()
-        tk.Label(self.top, text="Version: 1.1\n2019\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg").pack()
+        tk.Label(self.top, text="Version: 1.1\n2019-2020\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg\nWebsite:\nhttps://infinitenex.github.io/TimeTracker/").pack()
 
     def about_callback(self):
         root.deiconify()
