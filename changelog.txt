@@ -8,3 +8,4 @@ v1.1
 
 Bugs
 - program still doesnt save data correctly when not closed from previous day
+- fix for crash when loading program and there are no logs to load
