@@ -52,6 +52,31 @@ current_day = None
 
 
 #=========================================================================
+# on startup, create \logs\, autosave and grid files
+def required_dir_check():
+    # logs dir
+    logs_path = ".\\logs"
+    if os.path.isdir(".\\logs") == True:
+        print("Step skipped: logs folder already exists")
+    else:
+        os.mkdir(logs_path)
+    
+    # grid.txt
+    if os.path.isfile(".\\grid.txt") == True:
+        print("Step skipped: grid.txt already exists")
+    else:
+        file = open("grid.txt", "w")
+        file.write(str(grid_cells))
+        file.close()
+
+    # config.txt
+    if os.path.isfile(".\\config.txt") == True:
+        print("Step skipped: config.txt already exists")
+    else:
+        file = open("config.txt", "w")
+        file.write("autosave=" + str(autosave_max))
+        file.close()  
+
 
 def startup_today():
     global filename, current_day
@@ -304,7 +329,7 @@ class UI:
         self.top.wm_attributes("-topmost", 1)
         self.top.geometry("220x120+850+250") #WidthxHeight and x+y
         root.iconify()
-        tk.Label(self.top, text="Version: 1.1\n2019-2020\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg\nWebsite:\nhttps://infinitenex.github.io/TimeTracker/").pack()
+        tk.Label(self.top, text="Version: 1.2\n2019-2020\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg\nWebsite:\nhttps://infinitenex.github.io/TimeTracker/").pack()
 
     def about_callback(self):
         root.deiconify()
@@ -439,6 +464,7 @@ def desktop_shortcut():
 #=========================================================================
 
 if __name__ == "__main__":
+    required_dir_check()
     root = tk.Tk()
     root.resizable(0,0)
     title = root.title("Time Tracker")
