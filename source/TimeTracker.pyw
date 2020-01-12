@@ -16,6 +16,7 @@ import sys
 import winshell
 import urllib
 from urllib import request
+import webbrowser
 
 website = "https://infinitenex.github.io/TimeTracker/"
 current_version = "1.2"
@@ -56,6 +57,10 @@ task_accumulated_time = {}
 filename = datetime.datetime.now() 
 
 #=========================================================================
+def webcallback():
+    webbrowser.open_new(website)
+
+
 def version_check():
     link = urllib.request.urlopen(website).read()
     lnk = link.split()
@@ -63,9 +68,13 @@ def version_check():
     aaa = str(aa[1]).split("<")
     #print(aaa[0])
     if aaa[0] != current_version:
-        tkMessageBox.showinfo(title="Alert!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nGo to "+website+" to get it.")
+        #tkMessageBox.showinfo(title="New version available!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nGo to "+website+" to get it.")
+        if tkMessageBox.askokcancel(title="New version available!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nDo you wish to update now?"):
+            webcallback()
     else:
         pass # Running latest version.
+
+
 
     
 # on startup, create \logs\, autosave and grid files
