@@ -2,6 +2,7 @@ Changelog
 v1.2
 - grid.txt, config.txt and \logs now generate if missing. Said files have been removed from the source folder
 - current day is now checked when tracking, so the program doesnt need to be closed every day
+- main timer now gets set back when changing to a new day
 
 v1.1
 - redesigned top row of buttons and shrunk the window height
