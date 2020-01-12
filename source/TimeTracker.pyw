@@ -14,7 +14,11 @@ import win32process
 import json
 import sys
 import winshell
+import urllib
+from urllib import request
 
+website = "https://infinitenex.github.io/TimeTracker/"
+current_version = "1.2"
 entry_text = ""
 current_year = datetime.datetime.now()
 # autosave and save location
@@ -52,6 +56,18 @@ task_accumulated_time = {}
 filename = datetime.datetime.now() 
 
 #=========================================================================
+def version_check():
+    link = urllib.request.urlopen(website).read()
+    lnk = link.split()
+    aa = str(lnk[115]).split("v")
+    aaa = str(aa[1]).split("<")
+    #print(aaa[0])
+    if aaa[0] != current_version:
+        tkMessageBox.showinfo(title="Alert!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nGo to "+website+" to get it.")
+    else:
+        pass # Running latest version.
+
+    
 # on startup, create \logs\, autosave and grid files
 def required_dir_check():
     # logs dir
@@ -311,7 +327,7 @@ class UI:
         self.top.wm_attributes("-topmost", 1)
         self.top.geometry("220x120+850+250") #WidthxHeight and x+y
         root.iconify()
-        tk.Label(self.top, text="Version: 1.2\n2019-2020\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg\nWebsite:\nhttps://infinitenex.github.io/TimeTracker/").pack()
+        tk.Label(self.top, text="Version: "+current_version+"\n2019-2020\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg\nWebsite:\n"+website).pack()
 
     def about_callback(self):
         root.deiconify()
@@ -469,5 +485,9 @@ if __name__ == "__main__":
     root.protocol("WM_DELETE_WINDOW", callback)
     load_settings()
     UI(root)
+    try:
+        version_check()
+    except:
+        print("Cannot establish connection with website!")
     root.mainloop()
     
