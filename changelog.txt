@@ -1,11 +1,10 @@
 Changelog
+v1.2
+- grid.txt, config.txt and \logs now generate if missing. Said files have been removed from the source folder
 
 v1.1
 - redesigned top row of buttons and shrunk the window height
 - added "Add Time" button to add time that has passed but not tracked
 - added website to "About" section
 - opening the program now loads time labels with proper formatting
-
-Bugs
-- program still doesnt save data correctly when not closed from previous day
 - fix for crash when loading program and there are no logs to load
