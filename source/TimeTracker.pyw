@@ -337,6 +337,9 @@ class UI:
             # if != then change filename to new day and empty accumulated time for all tasks
                 filename = self.day_check
                 task_accumulated_time = {}
+                # set back the timer
+                self.label.configure(text="00:00:00")
+                self.seconds = 0
 
             try:
                 self.on.destroy()
