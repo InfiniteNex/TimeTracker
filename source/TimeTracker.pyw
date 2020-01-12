@@ -48,8 +48,8 @@ grid_cells = {
 # list with all tasks and their respective accumulated times
 task_accumulated_time = {}
 
-current_day = None
-
+#set the filename to the current day
+filename = datetime.datetime.now() 
 
 #=========================================================================
 # on startup, create \logs\, autosave and grid files
@@ -76,22 +76,6 @@ def required_dir_check():
         file = open("config.txt", "w")
         file.write("autosave=" + str(autosave_max))
         file.close()  
-
-
-def startup_today():
-    global filename, current_day
-
-    filename = datetime.datetime.now() #set the filename to the current day
-      
-def today():
-    global filename, current_day, grid_cells
-    #check the current day and compare it to the old day registry
-    current_day = datetime.datetime.now()
-    if current_day != filename:
-        # empty the task times from the previous day
-        task_accumulated_time = {}
-    else:
-        pass
 
 def callback():
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
@@ -130,8 +114,6 @@ class UI:
     def __init__(self, parent):
         global entry_text, entry, autosave, autosave_max
 
-        #tk.Button(root, text="Settings", command=self.settings_window).place(relx=0.55, rely=0.025, relwidth=0.2)
-
         entry = tk.StringVar()
         self.entry_space = tk.Entry(root, textvariable=entry)
         self.entry_space.place(relx=0.02, rely=0.01, relheight=0.07, relwidth=0.22)
@@ -144,12 +126,12 @@ class UI:
         self.frame = tk.LabelFrame(root, text="Tasks")
         self.frame.place(relx=0.018, rely=0.1, relwidth=0.75, relheight=0.87)
 
-        b0 = tk.Button(self.frame, text="  ", relief=tk.RIDGE).grid(row=0 , column=0)
-        self.task = tk.Button(self.frame, text="Resting", width=30, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
+        tk.Button(self.frame, text="  ", relief=tk.RIDGE).grid(row=0 , column=0) # empty element grid 0/0
+        tk.Button(self.frame, text="Resting", width=30, command=lambda row=0: self.task_activate(row)).grid(row=0, column=1)
         self.time_elapsed = tk.Label(self.frame, text="[Time elapsed]", width=15, relief=tk.RIDGE)
         self.time_elapsed.grid(row=0, column=2)
-        self.add_time = tk.Button(self.frame, text="Add Time", command=lambda row=0: self.add_time_postmortem(row)).grid(row=0, column=3)
-        b5 = tk.Label(self.frame).grid(row=0, column=4)
+        tk.Button(self.frame, text="Add Time", command=lambda row=0: self.add_time_postmortem(row)).grid(row=0, column=3)
+        tk.Label(self.frame).grid(row=0, column=4) # empty element grid 0/5
 
 
         tk.Button(self.frame, text="+", command=lambda row=1: self.addnew(row)).grid(row=1 , column=0)
@@ -336,21 +318,31 @@ class UI:
         self.top.destroy()
 
     def on_off(self):
-        today() # check the current day
-        try:
-            self.on_tb_destroyed.destroy()
-        except:
-            pass
+        global loop_state, filename, task_accumulated_time
 
-        global loop_state
+        try:
+            self.on_tb_destroyed.destroy() # destroy On button, that is generated on startup
+        except:
+            pass # if its already been destroyed
+
         if self.loop_state == 0: #start timer
             self.loop_state += 1
             self.off = tk.Button(root, text="Off", command=self.on_off)
             self.off.place(relx=0.345, rely=0.01, relwidth=0.1, relheight=0.064)
+
+            # check the current day
+            self.day_check = datetime.datetime.now() 
+            # compare it with the last check
+            if self.day_check.strftime("%d %B %Y") != filename.strftime("%d %B %Y"):
+            # if != then change filename to new day and empty accumulated time for all tasks
+                filename = self.day_check
+                task_accumulated_time = {}
+
             try:
                 self.on.destroy()
             except:
                 pass
+
         elif self.loop_state == 1: #stop timer
             self.loop_state -= 1
             self.on = tk.Button(root, text="On", command=self.on_off)
@@ -472,7 +464,6 @@ if __name__ == "__main__":
     root.iconbitmap("icon_OKt_icon.ico")
     root.geometry("600x360+800+150") #WidthxHeight and x+y of main window
     root.protocol("WM_DELETE_WINDOW", callback)
-    startup_today() # check the current day on startup
     load_settings()
     UI(root)
     root.mainloop()
