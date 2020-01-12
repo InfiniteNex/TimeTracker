@@ -60,7 +60,6 @@ filename = datetime.datetime.now()
 def webcallback():
     webbrowser.open_new(website)
 
-
 def version_check():
     link = urllib.request.urlopen(website).read()
     lnk = link.split()
@@ -74,9 +73,6 @@ def version_check():
     else:
         pass # Running latest version.
 
-
-
-    
 # on startup, create \logs\, autosave and grid files
 def required_dir_check():
     # logs dir
@@ -363,9 +359,64 @@ class UI:
                 filename = self.day_check
                 task_accumulated_time = {}
                 # set back the timer
-                self.label.configure(text="00:00:00")
+                #self.label.configure(text="00:00:00")
                 self.seconds = 0
 
+                # nullify all time labels
+                label_restart = self.frame.grid_slaves(row=0)[2]
+                label_restart.configure(text="00:00:00")
+                try:
+                    label_restart = self.frame.grid_slaves(row=1)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=2)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=3)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=4)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=5)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=6)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=7)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=8)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=9)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.frame.grid_slaves(row=10)[2]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+
+                    
             try:
                 self.on.destroy()
             except:
