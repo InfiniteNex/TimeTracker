@@ -96,6 +96,7 @@ if __name__ == "__main__":
     root.configure(background="yellow")
     root.wm_attributes("-topmost", 1)
     root.wm_attributes("-transparentcolor", "yellow")
+    root.attributes("-alpha", 0.9)
     root.overrideredirect(True) # removes title bar
     root.geometry("200x%i+%i+0" % (scr_height, master_x)) #WidthxHeight and x+y of main window
     Background(root).pack(fill="both", expand=True)
