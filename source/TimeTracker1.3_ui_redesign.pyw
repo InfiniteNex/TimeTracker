@@ -108,7 +108,7 @@ def convert(seconds):
     minutes = seconds // 60
     seconds %= 60
       
-    return "%d:%02d:%02d" % (hour, minutes, seconds) 
+    return "%02d:%02d:%02d" % (hour, minutes, seconds) 
 
 def callback_quit(event):
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
@@ -214,7 +214,7 @@ class UI(tk.Frame):
         self.ui_grid.place(relx=0.05, rely=0.075, relwidth=0.9, relheight=0.8)
         for row in range(15):
             tk.Label(self.ui_grid, bg="#162554", height=2).grid(row=row, column=0, pady=10)
-            tk.Label(self.ui_grid, bg="red").grid(row=row, column=6) #"#162554"
+            tk.Label(self.ui_grid, bg="#162554").grid(row=row, column=6) #"#162554"
 
         #load saved times from last file of the current day
         try:
@@ -279,7 +279,7 @@ class UI(tk.Frame):
             #convert the time into a 00:00:00 format
             self.conv_seconds = convert(self.seconds)
             # display the new time
-            self.label.configure(text=self.conv_seconds)
+            self.loop.configure(text=self.conv_seconds)
             # increment and activate autosave
             autosave_inc += 1
             if autosave_inc == autosave_max:
@@ -300,7 +300,136 @@ class UI(tk.Frame):
         active_task["name"] = task_name['text']
         active_task["row"] = row
 
-        print(active_task)
+        # deactivate previous recording label
+        for i in range(15):
+            self.active_label = self.ui_grid.grid_slaves(row=i)[1]
+            self.active_label.configure(bg="#162554")
+
+        # activate recording label
+        self.active_label = self.ui_grid.grid_slaves(row=row)[5]
+        self.active_label.configure(bg="red")
+
+
+        #turn on/off
+        self.on_off()
+
+    def on_off(self):
+        global loop_state, filename, task_accumulated_time
+
+        if self.loop_state == 0: #start timer
+            self.loop_state += 1
+
+            # check the current day
+            self.day_check = datetime.datetime.now() 
+            # compare it with the last check
+            if self.day_check.strftime("%d %B %Y") != filename.strftime("%d %B %Y"):
+            # if != then change filename to new day and empty accumulated time for all tasks
+                filename = self.day_check
+                task_accumulated_time = {}
+                # set back the timer
+                #self.label.configure(text="00:00:00")
+                self.seconds = 0
+
+                # nullify all time labels
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=0)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=1)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=2)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=3)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=4)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=5)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=6)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=7)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=8)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=9)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=10)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=11)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=12)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=13)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+                try:
+                    label_restart = self.ui_grid.grid_slaves(row=14)[1]
+                    label_restart.configure(text="00:00:00")
+                except:
+                    pass
+
+        elif self.loop_state == 1: #stop timer
+            self.loop_state -= 1
+            save_data()
+        
+
+
+
+    def increment_time_label(self):
+        # check for the currently selected active task name
+        self.currently_selected_task_name = active_task.get("name")
+        # if no task is selected, dont run timer
+        # add this time to dictionary as value to task name as key
+        if not self.currently_selected_task_name in task_accumulated_time:
+            task_accumulated_time[self.currently_selected_task_name] = 1
+        else:
+            task_accumulated_time[self.currently_selected_task_name] += 1
+        # refresh time label with new accumulated time from the dict
+        self.time_row = active_task.get("row")
+        self.time_label_to_refresh = self.ui_grid.grid_slaves(row=self.time_row, column=2)[0]
+        # convert the time into a 00:00:00 format
+        self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
+        self.time_label_to_refresh.configure(text=self.conv_time)
+
 
     def add_new(self, *args):
         global grid_cells
@@ -320,7 +449,7 @@ class UI(tk.Frame):
                     self.delete.grid(row=int(key), column=5)
                     self.delete.bind("<Button-1>", lambda event, row=int(key): self.delete_row(event, row))
 
-                    grid_cells[key] = "full"
+                    grid_cells[key] = str(self.task_name)
                     break
 
     # delete this specific row of buttons
