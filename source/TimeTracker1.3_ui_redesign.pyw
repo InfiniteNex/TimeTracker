@@ -32,6 +32,9 @@ currentDirectory = os.getcwd()
 path_to_logs = currentDirectory+"\\logs\\"
 autosave = ""
 
+#name and row of the currently selected active task
+active_task = {}
+
 # empty or full
 grid_cells = {
     "0" : "empty",
@@ -56,6 +59,46 @@ task_accumulated_time = {}
 
 #set the filename to the current day
 filename = datetime.datetime.now() 
+#=========================================================================
+def webcallback():
+    webbrowser.open_new(website)
+
+def version_check():
+    link = urllib.request.urlopen(website).read()
+    lnk = link.split()
+    aa = str(lnk[115]).split("v")
+    aaa = str(aa[1]).split("<")
+    #print(aaa[0])
+    if aaa[0] != current_version:
+        if tkMessageBox.askokcancel(title="New version available!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nDo you wish to update now?"):
+            webcallback()
+    else:
+        pass # Running latest version.
+
+# on startup, create \logs\, autosave and grid files
+def required_dir_check():
+    # logs dir
+    logs_path = ".\\logs"
+    if os.path.isdir(".\\logs") == True:
+        print("Step skipped: logs folder already exists")
+    else:
+        os.mkdir(logs_path)
+    
+    # grid.txt
+    if os.path.isfile(".\\grid.txt") == True:
+        print("Step skipped: grid.txt already exists")
+    else:
+        file = open("grid.txt", "w")
+        file.write(str(grid_cells))
+        file.close()
+
+    # config.txt
+    if os.path.isfile(".\\config.txt") == True:
+        print("Step skipped: config.txt already exists")
+    else:
+        file = open("config.txt", "w")
+        file.write("autosave=" + str(autosave_max))
+        file.close()  
 
 #Convert seconds into hours, minutes and seconds to be displayed
 def convert(seconds): 
@@ -68,7 +111,36 @@ def convert(seconds):
     return "%d:%02d:%02d" % (hour, minutes, seconds) 
 
 def callback_quit(event):
-    raise SystemExit
+    if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
+        save_settings()
+        raise SystemExit
+
+def load_settings():
+    global autosave_max
+    file = open(currentDirectory+"\\" + "config.txt", "r")
+    contents = file.readlines()
+    file.close
+
+    for line in contents:
+        if "autosave" in line:
+            x = line.split(sep="=")
+            autosave_max = int(x[1])
+
+def save_settings():
+    # autosave_max = int(autosave.get())
+    file = open(currentDirectory+"\\" + "config.txt", "w")
+    file.write("autosave=" + str(autosave_max))
+    file.close
+    save_data()
+
+def save_data():
+    #save names and accumulated times
+    with open(path_to_logs + "log "+filename.strftime("%d %B %Y")+".txt", "w") as outputfile:
+        json.dump(task_accumulated_time, outputfile)
+
+    #save grid layout
+    with open(currentDirectory+"\\grid.txt", "w") as outputfile:
+        json.dump(grid_cells, outputfile)
 
 def callback_show_hide_ui(event):
     global master_x, root, wmx
@@ -142,21 +214,93 @@ class UI(tk.Frame):
         self.ui_grid.place(relx=0.05, rely=0.075, relwidth=0.9, relheight=0.8)
         for row in range(15):
             tk.Label(self.ui_grid, bg="#162554", height=2).grid(row=row, column=0, pady=10)
-        
+            tk.Label(self.ui_grid, bg="red").grid(row=row, column=6) #"#162554"
+
+        #load saved times from last file of the current day
+        try:
+            with open(path_to_logs + "log "+filename.strftime("%d %B %Y")+".txt", "r") as load_times:
+                accu_times = eval(load_times.read())
+                for key in accu_times:
+                    # add this time to dictionary as value to task name as key
+                    try:
+                        task_accumulated_time[key] = accu_times.get(key)
+                    except:
+                        pass
+        except:
+            print("No log for this day to load.")
+
+
+        #load grid layout data
+        with open(currentDirectory+"\\grid.txt", "r") as inf:
+            grid_cells_load = eval(inf.read())
+        #parse loaded grid data
+        for key in grid_cells_load:
+            self.cell_name = grid_cells_load.get(key)
+            if self.cell_name != "empty":
+                self.task = tk.Label(self.ui_grid, text=str(self.cell_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12))
+                self.task.grid(row=int(key), column=1)
+                self.task.bind("<Button-1>", lambda event, row=int(key): self.task_activate(event, row))
+                try:
+                    self.conv_time = convert(task_accumulated_time.get(self.cell_name))  #load times in 00:00:00 format rather than seconds
+                except:
+                    self.conv_time = "00:00:00"
+                tk.Label(self.ui_grid, text=self.conv_time, bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
+                self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=3)
+                # self.add.bind("<Button-1>", add_time_postmortem)
+                tk.Label(self.ui_grid, text="", bg="#162554").grid(row=int(key), column=4)
+                self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12))
+                self.delete.grid(row=int(key), column=5)
+                self.delete.bind("<Button-1>", lambda event, row=int(key): self.delete_row(event, row))
+                grid_cells[str(key)] = self.cell_name
+
+#==========TIMER===================
+
+        #variable storing time
+        self.seconds = 0
         #timer object
         self.loop = tk.Label(root)
         self.loop.place(x=0,y=0,width=0,height=0)
         # start the timer
         self.loop.after(100, self.timer)
 
+    loop_state = 0 # 0 off/on 1
     def timer(self):
-        global wmx
+        global wmx, autosave_max, autosave_inc
         get_mouse_pos()
         if wmx >= 260:
             master_x = -269
             root.geometry("270x%i+%i+0" % (scr_height, master_x))
+
+        # increment the time
+        if self.loop_state == 1:
+            self.seconds += 1
+            # increment time label, for specific row
+            self.increment_time_label()
+            #convert the time into a 00:00:00 format
+            self.conv_seconds = convert(self.seconds)
+            # display the new time
+            self.label.configure(text=self.conv_seconds)
+            # increment and activate autosave
+            autosave_inc += 1
+            if autosave_inc == autosave_max:
+                save_data()
+                autosave_inc = 0
+            else:
+                pass
         # request tkinter to call self.timer after 1s (the delay is given in ms)
-        self.loop.after(100, self.timer)
+        self.loop.after(1000, self.timer)
+
+#==========TIMER===================
+
+    def task_activate(self, event, row):
+        self.active_timer_row = self.ui_grid.grid_slaves(row=row)[1]
+        task_name = self.ui_grid.grid_slaves(row=row)[4]
+
+        # add task name and row to active task handler
+        active_task["name"] = task_name['text']
+        active_task["row"] = row
+
+        print(active_task)
 
     def add_new(self, *args):
         global grid_cells
@@ -165,22 +309,37 @@ class UI(tk.Frame):
             # get next empty grid row
             for key, value in grid_cells.items():
                 if value == "empty":
-                    self.task = tk.Label(self.ui_grid, text=str(self.task_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=1)
-                    # self.task.bind("<Button-1>", task_activate)
+                    self.task = tk.Label(self.ui_grid, text=str(self.task_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12))
+                    self.task.grid(row=int(key), column=1)
+                    self.task.bind("<Button-1>", lambda event, row=int(key): self.task_activate(event, row))
                     tk.Label(self.ui_grid, text="00:00:00", bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
                     self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=3)
                     # self.add.bind("<Button-1>", add_time_postmortem)
                     tk.Label(self.ui_grid, text="", bg="#162554").grid(row=int(key), column=4)
-                    self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=5)
-                    # self.delete.bind("<Button-1>", delete_row)
-                    tk.Label(self.ui_grid, bg="red").grid(row=int(key), column=6) #"#162554"
+                    self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12))
+                    self.delete.grid(row=int(key), column=5)
+                    self.delete.bind("<Button-1>", lambda event, row=int(key): self.delete_row(event, row))
 
                     grid_cells[key] = "full"
                     break
 
-
+    # delete this specific row of buttons
+    def delete_row(self, event, row):
+        widget_to_delete = self.ui_grid.grid_slaves(row=row)[4]
+        widget_to_delete.destroy()  #task_name
+        widget_to_delete = self.ui_grid.grid_slaves(row=row)[3]
+        #print(widget_to_delete, widget_to_delete['text'])
+        widget_to_delete.destroy()  #time_label
+        widget_to_delete = self.ui_grid.grid_slaves(row=row)[2]
+        widget_to_delete.destroy()  #add_time
+        widget_to_delete = self.ui_grid.grid_slaves(row=row)[1]
+        widget_to_delete.destroy()  #blank label
+        widget_to_delete = self.ui_grid.grid_slaves(row=row)[0]
+        widget_to_delete.destroy()  #delete_button
+        grid_cells[str(row)] = "empty"
 
 if __name__ == "__main__":
+    required_dir_check()
     root = tk.Tk()
     # root.option_add('*background', "#00134d")
     # # root.option_add('*Entry*background', '#FFFFFF')
@@ -192,5 +351,10 @@ if __name__ == "__main__":
     root.attributes("-alpha", 0.95)
     root.overrideredirect(True) # removes title bar
     root.geometry("270x%i+%i+0" % (scr_height, master_x)) #WidthxHeight and x+y of main window
+    load_settings()
     UI(root).place(relwidth=1, relheight=1)
+    try:
+        version_check()
+    except:
+        print("Cannot establish connection with website!")
     root.mainloop()
