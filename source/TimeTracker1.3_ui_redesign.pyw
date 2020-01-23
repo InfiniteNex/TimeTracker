@@ -157,9 +157,12 @@ def callback_show_hide_ui(event):
 def get_mouse_pos():
     global wmx
     # mouse pos on screen
-    mpos = win32gui.GetCursorInfo()
-    mposxy = mpos[2]
-    wmx = mposxy[0]
+    try:
+        mpos = win32gui.GetCursorInfo()
+        mposxy = mpos[2]
+        wmx = mposxy[0]
+    except:
+        pass
 
 class GradientFrame(tk.Canvas):
     '''A gradient frame which uses a canvas to draw the background'''
@@ -270,9 +273,12 @@ class UI(tk.Frame):
     def timer(self):
         global wmx, autosave_max, autosave_inc
         get_mouse_pos()
-        if wmx >= 260:
-            master_x = -269
-            root.geometry("270x%i+%i+0" % (scr_height, master_x))
+        try:
+            if wmx >= 260:
+                master_x = -269
+                root.geometry("270x%i+%i+0" % (scr_height, master_x))
+        except:
+            pass
 
         # increment the time
         if self.loop_state == 1:
