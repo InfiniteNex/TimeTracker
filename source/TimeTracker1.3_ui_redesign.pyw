@@ -18,7 +18,7 @@ import urllib
 from urllib import request
 import webbrowser
 
-classname = str()
+# classname = str()
 check = 1
 master_x = -269
 scr_height = win32api.GetSystemMetrics(1)
@@ -483,8 +483,13 @@ class UI(tk.Frame):
         self.top_name = tk.Label(self.bg_logs, text="Logs", bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge")
         self.top_name.pack(fill="x")
 
-        ## LOGS CODE HERE
-        ## PREVENT LOGS WINDOW FROM OPENING WHILE ITS ALREADY OPENED
+        # calendar widget
+        self.cal = DateEntry(self.bg_logs, width=12, background='darkblue', foreground='white', borderwidth=2, year=current_year.year)
+        self.cal.pack()
+        tk.Button(self.bg_logs, text="Load", bg="#5100ba", relief="ridge", foreground="white", command=self.load_date_log).pack()
+
+        self.logs_frame = tk.Frame(self.bg_logs, bg="#162554")
+        self.logs_frame.place(relx=0.025, rely=0.15, relwidth=0.95, relheight=0.75)
 
         #==================================================================================================================================
         self.top_close = tk.Label(self.bg_logs, text="Close", bg="#5100ba", font=("Helvetica", 12), foreground="white", relief="ridge")
@@ -493,6 +498,39 @@ class UI(tk.Frame):
 
     def close_logs_callback(self, event):
         self.top2.destroy()
+
+    def load_date_log(self):
+        # tk.Label(self.logs_frame, text="Showing logs for:").pack()
+        self.get_cal_date = self.cal.get_date()
+        # tk.Label(self.logs_frame, text=self.get_cal_date).pack()
+        
+        # empty any old loaded logs
+        try:
+            for i in range(3):
+                dest0 = self.logs_frame.grid_slaves(row=i, column=0)[0]
+                dest0.destroy()
+                dest1 = self.logs_frame.grid_slaves(row=i, column=1)[0]
+                dest1.destroy()
+        except:
+            pass
+
+        #load file for chosen date from the logs folder (\\logs)
+        self.load_log_file = {}
+        self.index_rows = 0
+        try:
+            with open(path_to_logs + "log " + self.get_cal_date.strftime("%d %B %Y") + ".txt", "r") as log_file:
+                self.load_log_file = eval(log_file.read())
+                log_file.close()
+                #display the data in a readable format
+                for key in self.load_log_file:
+                    task_time = self.load_log_file.get(key)
+                    task_time_conv = convert(task_time)
+                    tk.Label(self.logs_frame, text=key, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=0, pady=15)
+                    tk.Label(self.logs_frame, text=task_time_conv, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=1, padx=60)
+                    self.index_rows += 1
+        except:
+            tk.Label(self.logs_frame, text="No log data for chosen date.").pack()
+
 
 if __name__ == "__main__":
     required_dir_check()
