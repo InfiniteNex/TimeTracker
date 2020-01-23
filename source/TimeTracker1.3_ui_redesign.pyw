@@ -425,6 +425,8 @@ class UI(tk.Frame):
         tk.Entry(self.bg_sett, width=5, textvariable=autosave).pack()
         autosave.set(autosave_max)
 
+        # ADD STARTUP AND DESKTOP SHORTCUTS FUNCTIONS
+
         #==================================================================================================================================
         self.top_close = tk.Label(self.bg_sett, text="Close", bg="#5100ba", font=("Helvetica", 12), foreground="white", relief="ridge")
         self.top_close.pack(fill="x", side="bottom")
