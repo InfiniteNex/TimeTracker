@@ -18,6 +18,8 @@ import urllib
 from urllib import request
 import webbrowser
 
+classname = str()
+check = 1
 master_x = -269
 scr_height = win32api.GetSystemMetrics(1)
 wmx = None
@@ -162,7 +164,7 @@ def get_mouse_pos():
         mposxy = mpos[2]
         wmx = mposxy[0]
     except:
-        pass
+        print("No mouse coords found.")
 
 class GradientFrame(tk.Canvas):
     '''A gradient frame which uses a canvas to draw the background'''
@@ -271,14 +273,33 @@ class UI(tk.Frame):
 
     loop_state = 0 # 0 off/on 1
     def timer(self):
-        global wmx, autosave_max, autosave_inc
+        global wmx, autosave_max, autosave_inc, check, classname
+        
+        try:
+            self.w=win32gui                                # detect window every second
+            self.w.GetWindowText (self.w.GetForegroundWindow()) # get active window code
+            self.pid = win32process.GetWindowThreadProcessId(self.w.GetForegroundWindow()) # get process name.exe
+            self.classname = self.w.GetClassName (self.w.GetForegroundWindow()) # get process class name
+            # print(self.classname, psutil.Process(self.pid[-1]).name())
+        except:
+            pass
+
         get_mouse_pos()
         try:
             if wmx >= 260:
                 master_x = -269
                 root.geometry("270x%i+%i+0" % (scr_height, master_x))
         except:
-            pass
+            print("No mouse coords found.")
+
+        # stop recording if the PC is locked
+        if str(self.classname) == "Windows.UI.Core.CoreWindow" and check == 1:
+            # print('Locked')
+            row = int(active_task["row"])
+            self.on_off(event=None, row=row)
+            check = 0
+        else:
+            pass #print("unlocked")
 
         # increment the time
         if self.loop_state == 1:
@@ -302,8 +323,8 @@ class UI(tk.Frame):
 #==========TIMER===================
 
     def on_off(self, event, row):
-        global loop_state, filename, task_accumulated_time # loop state - 0 off/on 1
-
+        global loop_state, filename, task_accumulated_time, check # loop state - 0 off/on 1
+        check = 1
         # check the current day
         self.day_check = datetime.datetime.now()
         # get name of task
