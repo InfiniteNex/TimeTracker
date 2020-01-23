@@ -33,7 +33,10 @@ path_to_logs = currentDirectory+"\\logs\\"
 autosave = ""
 
 #name and row of the currently selected active task
-active_task = {}
+active_task = {
+    "name" : "blank",
+    "row" : 0
+}
 
 # empty or full
 grid_cells = {
@@ -111,7 +114,7 @@ def convert(seconds):
     return "%02d:%02d:%02d" % (hour, minutes, seconds) 
 
 def callback_quit(event):
-    if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?"):
+    if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?\nAll data will be saved."):
         save_settings()
         raise SystemExit
 
@@ -127,11 +130,9 @@ def load_settings():
             autosave_max = int(x[1])
 
 def save_settings():
-    # autosave_max = int(autosave.get())
     file = open(currentDirectory+"\\" + "config.txt", "w")
     file.write("autosave=" + str(autosave_max))
-    file.close
-    save_data()
+    file.close()
 
 def save_data():
     #save names and accumulated times
@@ -205,9 +206,11 @@ class UI(tk.Frame):
 
         self.logs = tk.Label(backgr, bg="#5100ba", text="Logs", font=("Helvetica", 12), foreground="white", relief="ridge")
         self.logs.place(relx=0.15, rely=0.90, relwidth=0.7, relheight=0.02)
+        self.logs.bind("<Button-1>", self.logs_win)
 
         self.settings = tk.Label(backgr, bg="#5100ba", text="Settings", font=("Helvetica", 12), foreground="white", relief="ridge")
         self.settings.place(relx=0.15, rely=0.95, relwidth=0.7, relheight=0.02)
+        self.settings.bind("<Button-1>", self.settings_win)
 
 
         self.ui_grid = tk.Frame(root, bg="#162554")
@@ -239,7 +242,7 @@ class UI(tk.Frame):
             if self.cell_name != "empty":
                 self.task = tk.Label(self.ui_grid, text=str(self.cell_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12))
                 self.task.grid(row=int(key), column=1)
-                self.task.bind("<Button-1>", lambda event, row=int(key): self.task_activate(event, row))
+                self.task.bind("<Button-1>", lambda event, row=int(key): self.on_off(event, row))
                 try:
                     self.conv_time = convert(task_accumulated_time.get(self.cell_name))  #load times in 00:00:00 format rather than seconds
                 except:
@@ -292,127 +295,56 @@ class UI(tk.Frame):
 
 #==========TIMER===================
 
-    def task_activate(self, event, row):
-        self.active_timer_row = self.ui_grid.grid_slaves(row=row)[1]
-        task_name = self.ui_grid.grid_slaves(row=row)[4]
+    def on_off(self, event, row):
+        global loop_state, filename, task_accumulated_time # loop state - 0 off/on 1
 
-        # add task name and row to active task handler
-        active_task["name"] = task_name['text']
-        active_task["row"] = row
+        # check the current day
+        self.day_check = datetime.datetime.now()
+        # get name of task
+        self.selected_task_name = self.ui_grid.grid_slaves(row=row)[4]
+        # self.selected_task_name["text"] # selected task name string
 
-        # deactivate previous recording label
-        for i in range(15):
-            self.active_label = self.ui_grid.grid_slaves(row=i)[1]
-            self.active_label.configure(bg="#162554")
+        if self.loop_state == 1:
+            if self.selected_task_name["text"] == active_task["name"]:
+                self.loop_state = 0 # turn timer off
+                #deact rec lbl
+                self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
+                self.active_rec_lbl.configure(bg="#162554")
 
-        # activate recording label
-        self.active_label = self.ui_grid.grid_slaves(row=row)[5]
-        self.active_label.configure(bg="red")
+            elif self.selected_task_name["text"] != active_task["name"]:
+                #deactivate prev rec lbl
+                old_row = active_task["row"]
+                self.active_rec_lbl = self.ui_grid.grid_slaves(row=old_row, column=6)[0]
+                self.active_rec_lbl.configure(bg="#162554")
+                #set task as currently active
+                active_task["name"] = self.selected_task_name["text"]
+                active_task["row"] = row
+                #activate rec lbl
+                self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
+                self.active_rec_lbl.configure(bg="red")
 
-
-        #turn on/off
-        self.on_off()
-
-    def on_off(self):
-        global loop_state, filename, task_accumulated_time
-
-        if self.loop_state == 0: #start timer
-            self.loop_state += 1
-
-            # check the current day
-            self.day_check = datetime.datetime.now() 
-            # compare it with the last check
+        elif self.loop_state == 0:
             if self.day_check.strftime("%d %B %Y") != filename.strftime("%d %B %Y"):
             # if != then change filename to new day and empty accumulated time for all tasks
                 filename = self.day_check
                 task_accumulated_time = {}
                 # set back the timer
-                #self.label.configure(text="00:00:00")
                 self.seconds = 0
-
                 # nullify all time labels
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=0)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=1)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=2)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=3)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=4)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=5)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=6)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=7)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=8)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=9)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=10)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=11)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=12)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=13)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
-                try:
-                    label_restart = self.ui_grid.grid_slaves(row=14)[1]
-                    label_restart.configure(text="00:00:00")
-                except:
-                    pass
+                for row in self.ui_grid:
+                    try:
+                        self.nullify = self.ui_grid.grid_slaves(row=row, column=2)[0]
+                        self.nullify.configure(text="00:00:00")
+                    except:
+                        print("No widget to null on row %i" % (row))
 
-        elif self.loop_state == 1: #stop timer
-            self.loop_state -= 1
-            save_data()
-        
-
-
+            self.loop_state = 1 # turn timer on
+            active_task["name"] = self.selected_task_name["text"] #set task as currently active
+            active_task["row"] = row
+            #activate rec lbl
+            self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
+            self.active_rec_lbl.configure(bg="red")
+        save_data()
 
     def increment_time_label(self):
         # check for the currently selected active task name
@@ -430,7 +362,6 @@ class UI(tk.Frame):
         self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
         self.time_label_to_refresh.configure(text=self.conv_time)
 
-
     def add_new(self, *args):
         global grid_cells
         self.task_name = tk.simpledialog.askstring(title="Add new task", prompt="Please enter task name.\nUp to 10 characters long.")
@@ -440,7 +371,7 @@ class UI(tk.Frame):
                 if value == "empty":
                     self.task = tk.Label(self.ui_grid, text=str(self.task_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12))
                     self.task.grid(row=int(key), column=1)
-                    self.task.bind("<Button-1>", lambda event, row=int(key): self.task_activate(event, row))
+                    self.task.bind("<Button-1>", lambda event, row=int(key): self.on_off(event, row))
                     tk.Label(self.ui_grid, text="00:00:00", bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
                     self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=3)
                     # self.add.bind("<Button-1>", add_time_postmortem)
@@ -454,18 +385,85 @@ class UI(tk.Frame):
 
     # delete this specific row of buttons
     def delete_row(self, event, row):
-        widget_to_delete = self.ui_grid.grid_slaves(row=row)[4]
-        widget_to_delete.destroy()  #task_name
-        widget_to_delete = self.ui_grid.grid_slaves(row=row)[3]
-        #print(widget_to_delete, widget_to_delete['text'])
-        widget_to_delete.destroy()  #time_label
-        widget_to_delete = self.ui_grid.grid_slaves(row=row)[2]
-        widget_to_delete.destroy()  #add_time
-        widget_to_delete = self.ui_grid.grid_slaves(row=row)[1]
-        widget_to_delete.destroy()  #blank label
-        widget_to_delete = self.ui_grid.grid_slaves(row=row)[0]
-        widget_to_delete.destroy()  #delete_button
-        grid_cells[str(row)] = "empty"
+        this_row = self.ui_grid.grid_slaves(row=row)[4]
+        if tkMessageBox.askokcancel("Alert!", "Do you really wish to delete %s from the list?" % (this_row["text"])):
+            widget_to_delete = self.ui_grid.grid_slaves(row=row)[4]
+            widget_to_delete.destroy()  #task_name
+            widget_to_delete = self.ui_grid.grid_slaves(row=row)[3]
+            #print(widget_to_delete, widget_to_delete['text'])
+            widget_to_delete.destroy()  #time_label
+            widget_to_delete = self.ui_grid.grid_slaves(row=row)[2]
+            widget_to_delete.destroy()  #add_time
+            widget_to_delete = self.ui_grid.grid_slaves(row=row)[1]
+            widget_to_delete.destroy()  #blank label
+            widget_to_delete = self.ui_grid.grid_slaves(row=row)[0]
+            widget_to_delete.destroy()  #delete_button
+            grid_cells[str(row)] = "empty"
+
+    def settings_win(self, event):
+        global autosave, autosave_max
+
+        self.top = tk.Toplevel()
+        self.top.resizable(0,0)
+        self.top.configure(background="yellow")
+        self.top.wm_attributes("-transparentcolor", "yellow")
+        self.top.attributes("-alpha", 0.95)
+        self.top.overrideredirect(True) # removes title bar
+        self.top.title("Settings")
+        self.top.wm_attributes("-topmost", 1)
+        self.top.geometry("270x%i+270+0" % (scr_height)) #WidthxHeight and x+y of main window
+
+        self.bg_sett = tk.Frame(self.top, bg="#00134d")
+        self.bg_sett.pack(fill="both", expand=True)
+        #==================================================================================================================================
+        self.top_name = tk.Label(self.bg_sett, text="Settings", bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge")
+        self.top_name.pack(fill="x")
+
+        tk.Label(self.bg_sett, text="Autosave (sec): ", bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").pack()
+
+        autosave = tk.StringVar()
+        tk.Entry(self.bg_sett, width=5, textvariable=autosave).pack()
+        autosave.set(autosave_max)
+
+        #==================================================================================================================================
+        self.top_close = tk.Label(self.bg_sett, text="Close", bg="#5100ba", font=("Helvetica", 12), foreground="white", relief="ridge")
+        self.top_close.pack(fill="x", side="bottom")
+        self.top_close.bind("<Button-1>", self.close_settings_callback)
+
+    def close_settings_callback(self, event):
+        global autosave, autosave_max
+
+        autosave_max = int(autosave.get())
+        save_settings()
+        self.top.destroy()
+
+    def logs_win(self, event):
+        self.top2 = tk.Toplevel()
+        self.top2.resizable(0,0)
+        self.top2.configure(background="yellow")
+        self.top2.wm_attributes("-transparentcolor", "yellow")
+        self.top2.attributes("-alpha", 0.95)
+        self.top2.overrideredirect(True) # removes title bar
+        self.top2.title("Logs")
+        self.top2.wm_attributes("-topmost", 1)
+        self.top2.geometry("270x%i+270+0" % (scr_height)) #WidthxHeight and x+y of main window
+
+        self.bg_logs = tk.Frame(self.top2, bg="#00134d")
+        self.bg_logs.pack(fill="both", expand=True)
+        #==================================================================================================================================
+        self.top_name = tk.Label(self.bg_logs, text="Logs", bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge")
+        self.top_name.pack(fill="x")
+
+        ## LOGS CODE HERE
+        ## PREVENT LOGS WINDOW FROM OPENING WHILE ITS ALREADY OPENED
+
+        #==================================================================================================================================
+        self.top_close = tk.Label(self.bg_logs, text="Close", bg="#5100ba", font=("Helvetica", 12), foreground="white", relief="ridge")
+        self.top_close.pack(fill="x", side="bottom")
+        self.top_close.bind("<Button-1>", self.close_logs_callback)
+
+    def close_logs_callback(self, event):
+        self.top2.destroy()
 
 if __name__ == "__main__":
     required_dir_check()
