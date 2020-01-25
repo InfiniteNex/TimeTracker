@@ -26,7 +26,7 @@ master_x = -269
 scr_height = win32api.GetSystemMetrics(1)
 wmx = None
 website = "https://infinitenex.github.io/TimeTracker/"
-current_version = "1.3"
+current_version = "1.4"
 entry_text = ""
 current_year = datetime.datetime.now()
 # autosave and save location
@@ -122,6 +122,7 @@ def convert(seconds):
 def callback_quit(event):
     if tkMessageBox.askokcancel("Quit", "Do you really wish to quit?\nAll data will be saved."):
         save_settings()
+        save_data()
         raise SystemExit
 
 def load_settings():
