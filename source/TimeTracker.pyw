@@ -1,15 +1,14 @@
 import tkinter as tk
+from tkinter import messagebox as tkMessageBox
+from tkinter import simpledialog
+from tkcalendar import Calendar, DateEntry
 import win32api
 import win32gui
 import win32process
 import os
-import sys
 from os import path
-from tkinter import messagebox as tkMessageBox
-from tkinter import simpledialog
-from tkcalendar import Calendar, DateEntry
+import sys
 import datetime
-import getpass
 import time
 import psutil
 import json
@@ -69,20 +68,31 @@ task_accumulated_time = {}
 #set the filename to the current day
 filename = datetime.datetime.now() 
 #=========================================================================
-def webcallback():
-    webbrowser.open_new(website)
+# def webcallback():
+#     webbrowser.open_new(website)
 
 def version_check():
-    link = urllib.request.urlopen(website).read()
-    lnk = link.split()
-    aa = str(lnk[115]).split("v")
-    aaa = str(aa[1]).split("<")
-    #print(aaa[0])
-    if aaa[0] != current_version:
-        if tkMessageBox.askokcancel(title="New version available!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nDo you wish to update now?"):
-            webcallback()
-    else:
-        pass # Running latest version.
+    link = None
+    try:
+        link = urllib.request.urlopen(website).read()
+    except:
+        print("Cannot establish connection.")
+
+    if link != None:
+        lnk = link.split()
+        aa = str(lnk[115]).split("v")
+        aaa = str(aa[1]).split("<")
+        #print(aaa[0])
+        if aaa[0] != current_version:
+            if tkMessageBox.askokcancel(title="New version available!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nDo you wish to update now?"):
+                os.startfile("updater.exe")
+                # quit the current process so the file can be replaced
+                save_settings()
+                save_data()
+                raise SystemExit
+
+        else:
+            print("Running latest version.")
 
 # on startup, create \logs\, autosave and grid files
 def required_dir_check():
@@ -232,11 +242,13 @@ class UI(tk.Frame):
         backgr.pack(side="bottom", fill="both", expand=True)
         backgr.bind("<Motion>", callback_show_hide_ui)
 
+        tk.Label(backgr, text="TimeTracker v%s" % (current_version), bg="#00134d", foreground="#656075", font=("Helvetica", 10)).place(x=1, y=1)
+
         self.quit = tk.Label(backgr, bg="#5100ba", text="☼", foreground="white", relief="ridge")
         self.quit.place(relx=0.85, rely=0.005, relwidth=0.1, relheight=0.02)
         self.quit.bind("<Button-1>", callback_quit)
 
-        self.new = tk.Label(backgr, bg="#5100ba", text="New", font=("Helvetica", 12), foreground="white", relief="ridge")
+        self.new = tk.Label(backgr, bg="#5100ba", text="Add New Task", font=("Helvetica", 12), foreground="white", relief="ridge")
         self.new.place(relx=0.15, rely=0.03, relwidth=0.7, relheight=0.02)
         self.new.bind("<Button-1>", self.add_new)
 
@@ -673,8 +685,5 @@ if __name__ == "__main__":
     root.geometry("270x%i+%i+0" % (scr_height, master_x)) #WidthxHeight and x+y of main window
     load_settings()
     UI(root).place(relwidth=1, relheight=1)
-    try:
-        version_check()
-    except:
-        print("Cannot establish connection with website!")
+    version_check()
     root.mainloop()
