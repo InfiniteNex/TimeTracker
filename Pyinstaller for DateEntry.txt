@@ -1,3 +1,3 @@
 pyinstaller.exe --hidden-import babel.numbers script.py
 
-pyinstaller.exe --icon=icon_OKt_icon.ico --hidden-import babel.numbers TimeTracker.pyw
+pyinstaller.exe --icon=icon_OKt_icon.ico --onefile --hidden-import babel.numbers TimeTracker.pyw
