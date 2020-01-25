@@ -18,6 +18,7 @@ import urllib
 from urllib import request
 import webbrowser
 
+
 settings_check = 0 # 0 closed, 1 opened
 logs_check = 0 # 0 closed, 1 opened
 check = 1
@@ -282,8 +283,9 @@ class UI(tk.Frame):
                 except:
                     self.conv_time = "00:00:00"
                 tk.Label(self.ui_grid, text=self.conv_time, bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
-                self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=3)
-                # self.add.bind("<Button-1>", add_time_postmortem)
+                self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12))
+                self.add.grid(row=int(key), column=3)
+                self.add.bind("<Button-1>", lambda event, row=int(key): self.add_time_postmortem(event, row))
                 tk.Label(self.ui_grid, text="", bg="#162554").grid(row=int(key), column=4)
                 self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12))
                 self.delete.grid(row=int(key), column=5)
@@ -439,8 +441,9 @@ class UI(tk.Frame):
                     self.task.grid(row=int(key), column=1)
                     self.task.bind("<Button-1>", lambda event, row=int(key): self.on_off(event, row))
                     tk.Label(self.ui_grid, text="00:00:00", bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
-                    self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=3)
-                    # self.add.bind("<Button-1>", add_time_postmortem)
+                    self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12))
+                    self.add.grid(row=int(key), column=3)
+                    self.add.bind("<Button-1>", lambda event, row=int(key): self.add_time_postmortem(event, row))
                     tk.Label(self.ui_grid, text="", bg="#162554").grid(row=int(key), column=4)
                     self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12))
                     self.delete.grid(row=int(key), column=5)
@@ -465,6 +468,7 @@ class UI(tk.Frame):
             widget_to_delete = self.ui_grid.grid_slaves(row=row)[0]
             widget_to_delete.destroy()  #delete_button
             grid_cells[str(row)] = "empty"
+            save_data()
 
     def settings_win(self, event):
         global autosave, autosave_max, settings_check, logs_check, art, activity_rem_time
@@ -631,6 +635,27 @@ class UI(tk.Frame):
         self.top3.wm_attributes("-topmost", 1)
 
         tk.Label(self.top3, text="Version: "+current_version+"\n2019-2020\nCreated by:\nSimeon P. Todorov\nthe_nexus@mail.bg\nWebsite:\n"+website).pack()
+
+    def add_time_postmortem(self, event, row):
+        #prompt for time input
+        self.time_to_add = tk.simpledialog.askstring(title="asktime", prompt="How much time do you want to add?\n(ex.: 00:30:00)")
+        #get row/task name of pressed button
+        self.taskID_to_add_to = self.ui_grid.grid_slaves(row=row, column=1)[0]
+        self.taskname_to_add_to = self.taskID_to_add_to['text']
+        #Convert postmortem time back into seconds
+        self.convertedhrs = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(self.time_to_add.split(":"))))
+        #add them to the currently accumulated time in the dictionary
+        if not self.taskname_to_add_to in task_accumulated_time:
+            task_accumulated_time[self.taskname_to_add_to] = self.convertedhrs
+        else:
+            task_accumulated_time[self.taskname_to_add_to] += self.convertedhrs
+        #refresh the time label
+        save_data()
+        self.time_label = self.ui_grid.grid_slaves(row=row, column=2)[0]
+        self.converttosec = convert(task_accumulated_time[self.taskname_to_add_to])
+        self.time_label['text'] = self.converttosec
+
+
 
 if __name__ == "__main__":
     required_dir_check()
