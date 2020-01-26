@@ -1,5 +1,9 @@
 Changelog
 
+v1.4
+- added selfupdater
+- added function to add past time (missed in 1.3)
+
 v1.3
 - complete interface design overhaul
 
