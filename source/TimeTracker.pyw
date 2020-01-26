@@ -36,12 +36,10 @@ path_to_logs = currentDirectory+"\\logs\\"
 autosave = ""
 activity_rem_time = 0 # 0 minutes by default
 art_time = 0
+rec_multiples = 0 # 0 off, 1 on
 
 #name and row of the currently selected active task
-active_task = {
-    "name" : "blank",
-    "row" : 0
-}
+active_task = {}
 
 # empty or full
 grid_cells = {
@@ -136,7 +134,7 @@ def callback_quit(event):
         raise SystemExit
 
 def load_settings():
-    global autosave_max, activity_rem_time
+    global autosave_max, activity_rem_time, rec_multiples
     file = open(currentDirectory+"\\" + "config.txt", "r")
     contents = file.readlines()
     file.close
@@ -148,11 +146,15 @@ def load_settings():
         if "activity_rem_time" in line:
             x = line.split(sep="=")
             activity_rem_time = int(x[1])
+        if "rec_multiples" in line:
+            x = line.split(sep="=")
+            rec_multiples = int(x[1])
 
 def save_settings():
     file = open(currentDirectory+"\\" + "config.txt", "w")
     file.write("autosave=" + str(autosave_max))
     file.write("\nactivity_rem_time=" + str(activity_rem_time))
+    file.write("\nrec_multiples=" + str(rec_multiples))
     file.close()
 
 def save_data():
@@ -376,7 +378,7 @@ class UI(tk.Frame):
 #==========TIMER===================
 
     def on_off(self, event, row):
-        global loop_state, filename, task_accumulated_time, check, active_task # loop state - 0 off/on 1
+        global loop_state, filename, task_accumulated_time, check, active_task, rec_multiples # loop state - 0 off/on 1
         check = 1
         # check the current day
         self.day_check = datetime.datetime.now()
@@ -385,24 +387,32 @@ class UI(tk.Frame):
         # self.selected_task_name["text"] # selected task name string
 
         if self.loop_state == 1:
-            if self.selected_task_name["text"] == active_task["name"]:
-                self.loop_state = 0 # turn timer off
+            if self.selected_task_name["text"] in active_task:
+                if rec_multiples == 0: #if rec multiples is off
+                    self.loop_state = 0 # turn timer off
                 #deact rec lbl
                 self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
                 self.active_rec_lbl.configure(bg="#162554")
-                active_task["name"] = "blank"
+                active_task.pop(self.selected_task_name["text"])
 
-            elif self.selected_task_name["text"] != active_task["name"]:
-                #deactivate prev rec lbl
-                old_row = active_task["row"]
-                self.active_rec_lbl = self.ui_grid.grid_slaves(row=old_row, column=6)[0]
-                self.active_rec_lbl.configure(bg="#162554")
-                #set task as currently active
-                active_task["name"] = self.selected_task_name["text"]
-                active_task["row"] = row
-                #activate rec lbl
-                self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
-                self.active_rec_lbl.configure(bg="red")
+            elif not self.selected_task_name["text"] in active_task:
+                if rec_multiples == 0: #if rec multiples is off
+                    #deactivate prev rec lbl
+                    old_row = next(iter(active_task.items()))
+                    self.active_rec_lbl = self.ui_grid.grid_slaves(row=old_row[1], column=6)[0]
+                    self.active_rec_lbl.configure(bg="#162554")
+                    #set task as currently active
+                    active_task = {}
+                    active_task[self.selected_task_name["text"]] = row #set task as currently active with row as value
+                    #activate rec lbl
+                    self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
+                    self.active_rec_lbl.configure(bg="red")
+                elif rec_multiples == 1: #if rec multiples is on
+                    # add selected task to the list
+                    active_task[self.selected_task_name["text"]] = row
+                    # activate its rec lbl
+                    self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
+                    self.active_rec_lbl.configure(bg="red")
 
         elif self.loop_state == 0:
             if self.day_check.strftime("%d %B %Y") != filename.strftime("%d %B %Y"):
@@ -420,28 +430,27 @@ class UI(tk.Frame):
                         print("No widget to null on row %i" % (str(row)))
 
             self.loop_state = 1 # turn timer on
-            active_task["name"] = self.selected_task_name["text"] #set task as currently active
-            active_task["row"] = row
+            active_task[self.selected_task_name["text"]] = row #set task as currently active
             #activate rec lbl
             self.active_rec_lbl = self.ui_grid.grid_slaves(row=row, column=6)[0]
             self.active_rec_lbl.configure(bg="red")
         save_data()
 
     def increment_time_label(self):
-        # check for the currently selected active task name
-        self.currently_selected_task_name = active_task.get("name")
-        # if no task is selected, dont run timer
-        # add this time to dictionary as value to task name as key
-        if not self.currently_selected_task_name in task_accumulated_time:
-            task_accumulated_time[self.currently_selected_task_name] = 1
-        else:
-            task_accumulated_time[self.currently_selected_task_name] += 1
-        # refresh time label with new accumulated time from the dict
-        self.time_row = active_task.get("row")
-        self.time_label_to_refresh = self.ui_grid.grid_slaves(row=self.time_row, column=2)[0]
-        # convert the time into a 00:00:00 format
-        self.conv_time = convert(task_accumulated_time[self.currently_selected_task_name])
-        self.time_label_to_refresh.configure(text=self.conv_time)
+        # add times of all active tasks to the time dict
+        for key in active_task:
+            if not key in task_accumulated_time:
+                task_accumulated_time[key] = 1
+            else:
+                task_accumulated_time[key] += 1
+            # refresh time label with new accumulated time from the dict
+            self.time_row = active_task.get(key)
+            self.time_label_to_refresh = self.ui_grid.grid_slaves(row=self.time_row, column=2)[0]
+            # convert the time into a 00:00:00 format
+            self.conv_time = convert(task_accumulated_time[key])
+            self.time_label_to_refresh.configure(text=self.conv_time)
+
+
 
     def add_new(self, *args):
         global grid_cells
@@ -467,8 +476,15 @@ class UI(tk.Frame):
 
     # delete this specific row of buttons
     def delete_row(self, event, row):
+        global active_task
         this_row = self.ui_grid.grid_slaves(row=row)[4]
         if tkMessageBox.askokcancel("Alert!", "Do you really wish to delete %s from the list?" % (this_row["text"])):
+            # REMOVE TASK FROM ACTIVE TASKS LIST
+            active_task.pop(this_row["text"])
+            # DEACTIVATE REC LBL FOR THIS ROW
+            rec = self.ui_grid.grid_slaves(row=row, column=6)[0]
+            rec.configure(bg="#162554")
+            #delete widgets
             widget_to_delete = self.ui_grid.grid_slaves(row=row)[4]
             widget_to_delete.destroy()  #task_name
             widget_to_delete = self.ui_grid.grid_slaves(row=row)[3]
@@ -484,7 +500,7 @@ class UI(tk.Frame):
             save_data()
 
     def settings_win(self, event):
-        global autosave, autosave_max, settings_check, logs_check, art, activity_rem_time
+        global autosave, autosave_max, settings_check, logs_check, art, activity_rem_time, rec_multiples, rec_multiples_state
 
         if logs_check == 1:
             self.close_logs_callback(event=None)
@@ -544,6 +560,11 @@ class UI(tk.Frame):
             tk.Entry(self.bg_sett, width=5, textvariable=art).pack()
             art.set(activity_rem_time)
 
+
+            rec_multiples_state = tk.IntVar(self.bg_sett)
+            tk.Checkbutton(self.bg_sett, text="Record multiple tasks at once.", variable=rec_multiples_state, onvalue = 1, offvalue = 0, bg="#a1accc", font=("Helvetica", 12), relief="ridge").pack()
+            rec_multiples_state.set(rec_multiples)
+
             #==================================================================================================================================
             self.top_close = tk.Label(self.bg_sett, text="Close", bg="#5100ba", font=("Helvetica", 12), foreground="white", relief="ridge")
             self.top_close.pack(fill="x", side="bottom")
@@ -553,9 +574,10 @@ class UI(tk.Frame):
             tk.Button(self.bg_sett, text="About", bg="#5100ba", font=("Helvetica", 12), foreground="white", relief="ridge", command=self.about).pack(fill="x", side="bottom")
 
     def close_settings_callback(self, event):
-        global autosave, autosave_max, settings_check, art, activity_rem_time
+        global autosave, autosave_max, settings_check, art, activity_rem_time, rec_multiples, rec_multiples_state
 
         activity_rem_time = int(art.get())
+        rec_multiples = int(rec_multiples_state.get())
 
         settings_check = 0
         autosave_max = int(autosave.get())
