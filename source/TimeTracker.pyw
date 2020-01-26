@@ -22,6 +22,7 @@ settings_check = 0 # 0 closed, 1 opened
 logs_check = 0 # 0 closed, 1 opened
 check = 1
 master_x = -269
+scr_width = win32api.GetSystemMetrics(0)
 scr_height = win32api.GetSystemMetrics(1)
 wmx = None
 website = "https://infinitenex.github.io/TimeTracker/"
@@ -480,7 +481,10 @@ class UI(tk.Frame):
         this_row = self.ui_grid.grid_slaves(row=row)[4]
         if tkMessageBox.askokcancel("Alert!", "Do you really wish to delete %s from the list?" % (this_row["text"])):
             # REMOVE TASK FROM ACTIVE TASKS LIST
-            active_task.pop(this_row["text"])
+            try:
+                active_task.pop(this_row["text"])
+            except:
+                pass
             # DEACTIVATE REC LBL FOR THIS ROW
             rec = self.ui_grid.grid_slaves(row=row, column=6)[0]
             rec.configure(bg="#162554")
@@ -675,7 +679,7 @@ class UI(tk.Frame):
                 for key in self.load_log_file:
                     task_time = self.load_log_file.get(key)
                     task_time_conv = convert(task_time)
-                    tk.Label(self.logs_frame, text=key, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=0, pady=15)
+                    tk.Label(self.logs_frame, text=key, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=0, pady=5)
                     tk.Label(self.logs_frame, text=task_time_conv, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=1, padx=60)
                     self.index_rows += 1
         except:
@@ -712,6 +716,27 @@ class UI(tk.Frame):
 
 
 
+
+class Splash():
+    def __init__(self, parent):
+            self.splash = tk.Toplevel()
+            self.splash.resizable(0,0)
+            self.splash.configure(background="yellow")
+            self.splash.wm_attributes("-transparentcolor", "yellow")
+            self.splash.attributes("-alpha", 0.95)
+            self.splash.overrideredirect(True) # removes title bar
+            self.splash.title("Splash")
+            self.splash.wm_attributes("-topmost", 1)
+            self.splash.geometry("%ix%i+%i+%i" % (scr_width/5, scr_height/5, scr_width/2.5, scr_height/2)) #WidthxHeight and x+y of main window
+
+            self.bg_splash = tk.Frame(self.splash, bg="#00134d")
+            self.bg_splash.pack(fill="both", expand=True)
+
+            
+
+            tk.Label(self.splash, text="TimeTracker started.\nOpen it from the left edge of the screen.", foreground="white", font=("Helvetica", 16), bg="#00134d").place(relwidth=1, relheight=1)
+            tk.Button(self.splash, text="X", foreground="white", font=("Helvetica", 16), bg="#00134d", command=self.splash.destroy).place(relx=0.9, y=1)
+
 if __name__ == "__main__":
     required_dir_check()
     root = tk.Tk()
@@ -728,4 +753,5 @@ if __name__ == "__main__":
     load_settings()
     UI(root).place(relwidth=1, relheight=1)
     version_check()
+    Splash(root)
     root.mainloop()
