@@ -533,11 +533,17 @@ class UI(tk.Frame):
             tk.Entry(self.bg_sett, width=5, textvariable=autosave).pack()
             autosave.set(autosave_max)
 
+            tk.Label(self.bg_sett, bg="#00134d", height=2).pack()
+
+
             self.desktop_shortcut_state = tk.IntVar(self.bg_sett)
             self.startup_shortcut_state = tk.IntVar(self.bg_sett)
 
             tk.Checkbutton(self.bg_sett, text="Start with Windows", variable=self.startup_shortcut_state, command=startup_shortcut, onvalue = 1, offvalue = 0, bg="#a1accc", font=("Helvetica", 12), relief="ridge").pack()
             tk.Checkbutton(self.bg_sett, text="Desktop Shortcut", variable=self.desktop_shortcut_state ,command=desktop_shortcut, onvalue = 1, offvalue = 0, bg="#a1accc", font=("Helvetica", 12), relief="ridge").pack()
+
+            tk.Label(self.bg_sett, bg="#00134d", height=2).pack()
+
 
             #check if a desktop shortcut exists and set the control state
             desktop = winshell.desktop()
@@ -546,12 +552,18 @@ class UI(tk.Frame):
             else:
                 self.desktop_shortcut_state.set(0)
 
+
+            tk.Label(self.bg_sett, bg="#00134d", height=2).pack()
+
+
             #check if a startup shortcut exists and set the control state
             startup = winshell.startup()
             if path.exists(os.path.join(startup, "TimeTracker.lnk")):
                 self.startup_shortcut_state.set(1)
             else:
                 self.startup_shortcut_state.set(0)
+
+            tk.Label(self.bg_sett, bg="#00134d", height=2).pack()
 
             # task activity reminder
             tk.Label(self.bg_sett, text="Activity reminder(in minutes).\nSet to 0 if you dont want to be reminded.", bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").pack()
@@ -560,7 +572,9 @@ class UI(tk.Frame):
             tk.Entry(self.bg_sett, width=5, textvariable=art).pack()
             art.set(activity_rem_time)
 
+            tk.Label(self.bg_sett, bg="#00134d", height=2).pack()
 
+            # record multiple tasks
             rec_multiples_state = tk.IntVar(self.bg_sett)
             tk.Checkbutton(self.bg_sett, text="Record multiple tasks at once.", variable=rec_multiples_state, onvalue = 1, offvalue = 0, bg="#a1accc", font=("Helvetica", 12), relief="ridge").pack()
             rec_multiples_state.set(rec_multiples)
@@ -637,11 +651,16 @@ class UI(tk.Frame):
         
         # empty any old loaded logs
         try:
-            for i in range(3):
+            for i in range(15):
                 dest0 = self.logs_frame.grid_slaves(row=i, column=0)[0]
                 dest0.destroy()
                 dest1 = self.logs_frame.grid_slaves(row=i, column=1)[0]
                 dest1.destroy()
+        except:
+            pass
+
+        try:
+            self.no_recs.destroy()
         except:
             pass
 
@@ -660,7 +679,8 @@ class UI(tk.Frame):
                     tk.Label(self.logs_frame, text=task_time_conv, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=1, padx=60)
                     self.index_rows += 1
         except:
-            tk.Label(self.logs_frame, text="No log data for chosen date.").pack()
+            self.no_recs = tk.Label(self.logs_frame, text="No log data for chosen date.")
+            self.no_recs.pack()
 
     def about(self):
         self.top3 = tk.Toplevel()
