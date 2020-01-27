@@ -311,7 +311,7 @@ class UI(tk.Frame):
 #==========TIMER===================
 
         #variable storing time
-        self.seconds = 0
+        # self.seconds = 0
         #timer object
         self.loop = tk.Label(root)
         self.loop.place(x=0,y=0,width=0,height=0)
@@ -359,13 +359,13 @@ class UI(tk.Frame):
 
         # increment the time
         if self.loop_state == 1:
-            self.seconds += 1
+            # self.seconds += 1
             # increment time label, for specific row
             self.increment_time_label()
             #convert the time into a 00:00:00 format
-            self.conv_seconds = convert(self.seconds)
+            # self.conv_seconds = convert(self.seconds)
             # display the new time
-            self.loop.configure(text=self.conv_seconds)
+            # self.loop.configure(text=self.conv_seconds)
             # increment and activate autosave
             autosave_inc += 1
             if autosave_inc == autosave_max:
@@ -421,7 +421,7 @@ class UI(tk.Frame):
                 filename = self.day_check
                 task_accumulated_time = {}
                 # set back the timer
-                self.seconds = 0
+                # self.seconds = 0
                 # nullify all time labels
                 for i in range(15):
                     try:
