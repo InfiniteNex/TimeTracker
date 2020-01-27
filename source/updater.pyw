@@ -10,29 +10,24 @@ import os
 scr_width = win32api.GetSystemMetrics(0) / 2.5
 scr_height = win32api.GetSystemMetrics(1) / 2
 
-website = "https://infinitenex.github.io/TimeTracker/"
+# website = "https://infinitenex.github.io/TimeTracker/"
+website = "https://raw.githubusercontent.com/InfiniteNex/TimeTracker/master/changelog.txt"
 
 # check website for latest version available
 def version_check():
     global aaa
-    link = urllib.request.urlopen(website).read()
-    lnk = link.split()
-    aa = str(lnk[115]).split("v")
-    aaa = str(aa[1]).split("<")
+    link = urllib.request.urlopen(website).readlines()
+    aa = str(link[0]).split(" ")
+    aaa = str(aa[2]).split("-")
     update()
-    
     
 #download the latest zip and unpack it
 def update():
-    r = requests.get("https://github.com/InfiniteNex/TimeTracker/releases/download/v%s/TimeTracker.zip" % (aaa[0]))
+    r = requests.get("https://github.com/InfiniteNex/TimeTracker/releases/download/v%s/TimeTracker.zip" % (aaa[0]), verify=False)
     z = zipfile.ZipFile(io.BytesIO(r.content))
     # z.extractall()
     z.extract("TimeTracker.exe")
     print("Finished")
-
-    
-
-
 
 #=====================================================
 
