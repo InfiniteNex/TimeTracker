@@ -26,7 +26,8 @@ scr_width = win32api.GetSystemMetrics(0)
 scr_height = win32api.GetSystemMetrics(1)
 wmx = None
 website = "https://infinitenex.github.io/TimeTracker/"
-current_version = "1.4"
+website_ver = "https://raw.githubusercontent.com/InfiniteNex/TimeTracker/master/changelog.txt"
+current_version = "1.4.1"
 entry_text = ""
 current_year = datetime.datetime.now()
 # autosave and save location
@@ -73,14 +74,13 @@ filename = datetime.datetime.now()
 def version_check():
     link = None
     try:
-        link = urllib.request.urlopen(website).read()
+        link = urllib.request.urlopen(website_ver).readlines()
     except:
         print("Cannot establish connection.")
 
     if link != None:
-        lnk = link.split()
-        aa = str(lnk[115]).split("v")
-        aaa = str(aa[1]).split("<")
+        aa = str(link[0]).split(" ")
+        aaa = str(aa[2]).split("-")
         #print(aaa[0])
         if aaa[0] != current_version:
             if tkMessageBox.askokcancel(title="New version available!", message="A new version of TimeTracker is available!\nCurrent version: "+current_version+"\nNew version: "+aaa[0]+"\nDo you wish to update now?"):
@@ -324,10 +324,10 @@ class UI(tk.Frame):
         
         if int(activity_rem_time) != 0:
             art_time += 1
-            if active_task["name"] != "blank" and art_time/60 == int(activity_rem_time):
-                tk.messagebox.showinfo("Reminder!", "Currently tracking %s.\nPlease make sure you're tracking the right activity.\nThank you!" % (active_task["name"]))
+            if not active_task and art_time/60 == int(activity_rem_time):
+                tk.messagebox.showinfo("Reminder!", "Currently tracking.\nPlease make sure you're tracking the right activity.\nThank you!") # 1.4.1 removed saying what is currently tracked. add this in the future
                 art_time = 0
-            elif active_task["name"] == "blank" and art_time/60 == int(activity_rem_time):
+            elif art_time/60 == int(activity_rem_time):
                 tk.messagebox.showinfo("Reminder!", "You are NOT tracking at the moment!\nPlease make sure you're tracking the right activity.\nThank you!")
                 art_time = 0
         
@@ -351,8 +351,8 @@ class UI(tk.Frame):
         # stop recording if the PC is locked
         if str(self.classname) == "Windows.UI.Core.CoreWindow" and check == 1:
             # print('Locked')
-            row = int(active_task["row"])
-            self.on_off(event=None, row=row)
+            row = next(iter(active_task.items()))
+            self.on_off(event=None, row=row[1])
             check = 0
         else:
             pass #print("unlocked")
