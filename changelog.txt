@@ -1,6 +1,11 @@
 Latest version: 1.4.1-
 Changelog
 
+v1.4.1
+- fixed timer breaking when locking the PC
+- fixed timer breaking when setting reminder > 0
+- fixed updater requiring SSL certificates and breaking
+
 v1.4
 - added selfupdater
 - added function to add past time (missed in 1.3)
