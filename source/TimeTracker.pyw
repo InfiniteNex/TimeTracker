@@ -27,7 +27,7 @@ scr_height = win32api.GetSystemMetrics(1)
 wmx = None
 website = "https://infinitenex.github.io/TimeTracker/"
 website_ver = "https://raw.githubusercontent.com/InfiniteNex/TimeTracker/master/changelog.txt"
-current_version = "1.4.1"
+current_version = "1.4.2"
 entry_text = ""
 current_year = datetime.datetime.now()
 # autosave and save location
@@ -140,16 +140,19 @@ def load_settings():
     contents = file.readlines()
     file.close
 
-    for line in contents:
-        if "autosave" in line:
-            x = line.split(sep="=")
-            autosave_max = int(x[1])
-        if "activity_rem_time" in line:
-            x = line.split(sep="=")
-            activity_rem_time = int(x[1])
-        if "rec_multiples" in line:
-            x = line.split(sep="=")
-            rec_multiples = int(x[1])
+    try:
+        for line in contents:
+            if "autosave" in line:
+                x = line.split(sep="=")
+                autosave_max = int(x[1])
+            if "activity_rem_time" in line:
+                x = line.split(sep="=")
+                activity_rem_time = int(x[1])
+            if "rec_multiples" in line:
+                x = line.split(sep="=")
+                rec_multiples = int(x[1])
+    except:
+        print("Probable crash. Files are empty. default values will be used instead.")
 
 def save_settings():
     file = open(currentDirectory+"\\" + "config.txt", "w")
@@ -286,32 +289,39 @@ class UI(tk.Frame):
 
         #load grid layout data
         with open(currentDirectory+"\\grid.txt", "r") as inf:
-            grid_cells_load = eval(inf.read())
+            try:
+                grid_cells_load = eval(inf.read())
+            except:
+                pass
+    
         #parse loaded grid data
-        for key in grid_cells_load:
-            self.cell_name = grid_cells_load.get(key)
-            if self.cell_name != "empty":
-                self.task = tk.Label(self.ui_grid, text=str(self.cell_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12))
-                self.task.grid(row=int(key), column=1)
-                self.task.bind("<Button-1>", lambda event, row=int(key): self.on_off(event, row))
-                try:
-                    self.conv_time = convert(task_accumulated_time.get(self.cell_name))  #load times in 00:00:00 format rather than seconds
-                except:
-                    self.conv_time = "00:00:00"
-                tk.Label(self.ui_grid, text=self.conv_time, bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
-                self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12))
-                self.add.grid(row=int(key), column=3)
-                self.add.bind("<Button-1>", lambda event, row=int(key): self.add_time_postmortem(event, row))
-                tk.Label(self.ui_grid, text="", bg="#162554").grid(row=int(key), column=4)
-                self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12))
-                self.delete.grid(row=int(key), column=5)
-                self.delete.bind("<Button-1>", lambda event, row=int(key): self.delete_row(event, row))
-                grid_cells[str(key)] = self.cell_name
+        try:
+            for key in grid_cells_load:
+                self.cell_name = grid_cells_load.get(key)
+                if self.cell_name != "empty":
+                    self.task = tk.Label(self.ui_grid, text=str(self.cell_name), width=12, bg="#162554", relief="ridge", foreground="white", font=("Helvetica", 12))
+                    self.task.grid(row=int(key), column=1)
+                    self.task.bind("<Button-1>", lambda event, row=int(key): self.on_off(event, row))
+                    try:
+                        self.conv_time = convert(task_accumulated_time.get(self.cell_name))  #load times in 00:00:00 format rather than seconds
+                    except:
+                        self.conv_time = "00:00:00"
+                    tk.Label(self.ui_grid, text=self.conv_time, bg="#162554", foreground="white", font=("Helvetica", 12)).grid(row=int(key), column=2)
+                    self.add = tk.Label(self.ui_grid, text="+", bg="#3c4757", foreground="white", font=("Helvetica", 12))
+                    self.add.grid(row=int(key), column=3)
+                    self.add.bind("<Button-1>", lambda event, row=int(key): self.add_time_postmortem(event, row))
+                    tk.Label(self.ui_grid, text="", bg="#162554").grid(row=int(key), column=4)
+                    self.delete = tk.Label(self.ui_grid, text="Del", bg="#3c4757", foreground="white", font=("Helvetica", 12))
+                    self.delete.grid(row=int(key), column=5)
+                    self.delete.bind("<Button-1>", lambda event, row=int(key): self.delete_row(event, row))
+                    grid_cells[str(key)] = self.cell_name
+        except:
+            print("No grid data. Potential crash. Default values will be used instead.")
 
 #==========TIMER===================
 
         #variable storing time
-        # self.seconds = 0
+        self.seconds = 0
         #timer object
         self.loop = tk.Label(root)
         self.loop.place(x=0,y=0,width=0,height=0)
@@ -359,13 +369,13 @@ class UI(tk.Frame):
 
         # increment the time
         if self.loop_state == 1:
-            # self.seconds += 1
+            self.seconds += 1
             # increment time label, for specific row
             self.increment_time_label()
             #convert the time into a 00:00:00 format
-            # self.conv_seconds = convert(self.seconds)
+            self.conv_seconds = convert(self.seconds)
             # display the new time
-            # self.loop.configure(text=self.conv_seconds)
+            self.loop.configure(text=self.conv_seconds)
             # increment and activate autosave
             autosave_inc += 1
             if autosave_inc == autosave_max:
@@ -421,14 +431,14 @@ class UI(tk.Frame):
                 filename = self.day_check
                 task_accumulated_time = {}
                 # set back the timer
-                # self.seconds = 0
+                self.seconds = 0
                 # nullify all time labels
                 for i in range(15):
                     try:
                         self.nullify = self.ui_grid.grid_slaves(row=i, column=2)[0]
                         self.nullify.configure(text="00:00:00")
                     except:
-                        print("No widget to null on row %i" % (str(row)))
+                        print("No widget to null on row %i" % (i))
 
             self.loop_state = 1 # turn timer on
             active_task[self.selected_task_name["text"]] = row #set task as currently active
