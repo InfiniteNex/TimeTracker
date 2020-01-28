@@ -5,6 +5,7 @@ v1.4.2
 - fixed timer breaking when in new day
 - added exception if grid and config files are empty due to an unforseen crash
 - hotfix - switched if check for reminders
+- hotfix - fixed timer stoping when opening start menu
 
 v1.4.1
 - fixed timer breaking when locking the PC
