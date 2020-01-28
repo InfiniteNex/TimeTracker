@@ -359,13 +359,16 @@ class UI(tk.Frame):
             print("No mouse coords found.")
 
         # stop recording if the PC is locked
-        if str(self.classname) == "Windows.UI.Core.CoreWindow" and str(psutil.Process(self.pid[-1]).name()) != "SearchUI.exe" and check == 1:
-            # print('Locked')
-            row = next(iter(active_task.items()))
-            self.on_off(event=None, row=row[1])
-            check = 0
-        else:
-            pass #print("unlocked")
+        try:
+            if str(self.classname) == "Windows.UI.Core.CoreWindow" and str(psutil.Process(self.pid[-1]).name()) == "LockApp.exe" and check == 1:
+                # print('Locked')
+                row = next(iter(active_task.items()))
+                self.on_off(event=None, row=row[1])
+                check = 0
+            else:
+                pass #print("unlocked")
+        except:
+            pass
 
         # increment the time
         if self.loop_state == 1:
