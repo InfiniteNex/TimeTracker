@@ -1,6 +1,9 @@
 Latest version: 1.4.1-
 Changelog
 
+v1.4.2
+- fixed timer breaking when in new day
+
 v1.4.1
 - fixed timer breaking when locking the PC
 - fixed timer breaking when setting reminder > 0
