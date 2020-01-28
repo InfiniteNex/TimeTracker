@@ -334,10 +334,10 @@ class UI(tk.Frame):
         
         if int(activity_rem_time) != 0:
             art_time += 1
-            if not active_task and art_time/60 == int(activity_rem_time):
+            if art_time/60 == int(activity_rem_time):
                 tk.messagebox.showinfo("Reminder!", "Currently tracking.\nPlease make sure you're tracking the right activity.\nThank you!") # 1.4.1 removed saying what is currently tracked. add this in the future
                 art_time = 0
-            elif art_time/60 == int(activity_rem_time):
+            elif not active_task and art_time/60 == int(activity_rem_time):
                 tk.messagebox.showinfo("Reminder!", "You are NOT tracking at the moment!\nPlease make sure you're tracking the right activity.\nThank you!")
                 art_time = 0
         
