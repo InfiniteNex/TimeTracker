@@ -1,5 +1,8 @@
-Latest version: 1.4.2-
+Latest version: 1.4.3-
 Changelog
+
+v1.4.3
+- fixed tracker breaking after turning multiples settings on and then off
 
 v1.4.2
 - fixed timer breaking when in new day
