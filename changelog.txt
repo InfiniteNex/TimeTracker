@@ -1,5 +1,8 @@
-Latest version: 1.4.3-
+Latest version: 1.4.4-
 Changelog
+
+v1.4.4
+- added ability to copy time from logs to clipboard by pressing the time label
 
 v1.4.3
 - fixed tracker breaking after turning multiples settings on and then off
