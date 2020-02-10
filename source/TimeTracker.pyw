@@ -16,6 +16,7 @@ import winshell
 import urllib
 from urllib import request
 import webbrowser
+import clipboard
 
 
 settings_check = 0 # 0 closed, 1 opened
@@ -27,7 +28,7 @@ scr_height = win32api.GetSystemMetrics(1)
 wmx = None
 website = "https://infinitenex.github.io/TimeTracker/"
 website_ver = "https://raw.githubusercontent.com/InfiniteNex/TimeTracker/master/changelog.txt"
-current_version = "1.4.2"
+current_version = "1.4.4"
 entry_text = ""
 current_year = datetime.datetime.now()
 # autosave and save location
@@ -411,10 +412,13 @@ class UI(tk.Frame):
 
             elif not self.selected_task_name["text"] in active_task:
                 if rec_multiples == 0: #if rec multiples is off
-                    #deactivate prev rec lbl
-                    old_row = next(iter(active_task.items()))
-                    self.active_rec_lbl = self.ui_grid.grid_slaves(row=old_row[1], column=6)[0]
-                    self.active_rec_lbl.configure(bg="#162554")
+                    try:
+                        #deactivate prev rec lbl
+                        old_row = next(iter(active_task.items()))
+                        self.active_rec_lbl = self.ui_grid.grid_slaves(row=old_row[1], column=6)[0]
+                        self.active_rec_lbl.configure(bg="#162554")
+                    except:
+                        pass
                     #set task as currently active
                     active_task = {}
                     active_task[self.selected_task_name["text"]] = row #set task as currently active with row as value
@@ -693,7 +697,11 @@ class UI(tk.Frame):
                     task_time = self.load_log_file.get(key)
                     task_time_conv = convert(task_time)
                     tk.Label(self.logs_frame, text=key, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=0, pady=5)
-                    tk.Label(self.logs_frame, text=task_time_conv, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge").grid(row=self.index_rows, column=1, padx=60)
+
+                    self.log = tk.Label(self.logs_frame, text=task_time_conv, bg="#162554", font=("Helvetica", 12), foreground="white", relief="ridge")
+                    self.log.grid(row=self.index_rows, column=1, padx=60)
+                    self.log.bind("<Button-1>", lambda event, copy_time=task_time_conv: self.copy_to_clipboard(event, copy_time))
+
                     self.index_rows += 1
         except:
             self.no_recs = tk.Label(self.logs_frame, text="No log data for chosen date.")
@@ -727,8 +735,8 @@ class UI(tk.Frame):
         self.converttosec = convert(task_accumulated_time[self.taskname_to_add_to])
         self.time_label['text'] = self.converttosec
 
-
-
+    def copy_to_clipboard(self, event, copy_time):
+        clipboard.copy(copy_time)
 
 class Splash():
     def __init__(self, parent):
